@@ -404,3 +404,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Rider's local history
+*_tree.txt

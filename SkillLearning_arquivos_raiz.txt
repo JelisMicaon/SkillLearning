@@ -1,0 +1,182 @@
+﻿Arquivos na raiz de [SkillLearning]
+------------------------------------------
+    - .dockerignore
+    | **/.classpath
+    | **/.dockerignore
+    | **/.env
+    | **/.git
+    | **/.gitignore
+    | **/.project
+    | **/.settings
+    | **/.toolstarget
+    | **/.vs
+    | **/.vscode
+    | **/*.*proj.user
+    | **/*.dbmdl
+    | **/*.jfm
+    | **/azds.yaml
+    | **/bin
+    | **/charts
+    | **/docker-compose*
+    | **/Dockerfile*
+    | **/node_modules
+    | **/npm-debug.log
+    | **/obj
+    | **/secrets.dev.yaml
+    | **/values.dev.yaml
+    | LICENSE
+    | README.md
+    | !**/.gitignore
+    | !.git/HEAD
+    | !.git/config
+    | !.git/packed-refs
+    | !.git/refs/heads/**
+    ------------------------------------------------
+
+    - docker-compose.yml
+    | version: '3.9'
+    | 
+    | services:
+    |   skilllearning-api:
+    |     container_name: skilllearning-api
+    |     build:
+    |       context: .
+    |       dockerfile: Dockerfile
+    |     ports:
+    |       - "5000:8080"
+    |     environment:
+    |       ASPNETCORE_ENVIRONMENT: Development
+    |       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=SkillLearningDb;Username=postgres;Password=admin;"
+    |       Redis__ConnectionString: redis:6379
+    |       Kafka__BootstrapServers: kafka:9092
+    |       Jwt__Key: /02j+p5N7XgL8Q1rG9tY/2mB4kP7u0xV5cR3zW6a9S0I=
+    |       Jwt__Issuer: http://localhost:5000
+    |       Jwt__Audience: https://localhost:4200
+    |     depends_on:
+    |       - postgres
+    |       - redis
+    |       - kafka
+    |     networks:
+    |       - skilllearning-net
+    | 
+    |   postgres:
+    |     image: postgres:15
+    |     container_name: postgres
+    |     restart: always
+    |     ports:
+    |       - "5432:5432"
+    |     environment:
+    |       POSTGRES_DB: SkillLearningDb
+    |       POSTGRES_USER: postgres
+    |       POSTGRES_PASSWORD: admin
+    |     volumes:
+    |       - pgdata:/var/lib/postgresql/data
+    |     networks:
+    |       - skilllearning-net
+    |     healthcheck:
+    |       test: ["CMD-SHELL", "pg_isready -U postgres -d SkillLearningDb"]
+    |       interval: 5s
+    |       timeout: 5s
+    |       retries: 5
+    |       start_period: 45s
+    |   
+    |   redis:
+    |     image: redis:7
+    |     container_name: redis
+    |     ports:
+    |       - "6379:6379"
+    |     networks:
+    |       - skilllearning-net
+    | 
+    |   redis-insight:
+    |     image: redis/redisinsight:latest
+    |     container_name: redis-insight
+    |     ports:
+    |       - "8081:5540"
+    |     networks:
+    |       - skilllearning-net
+    |     depends_on:
+    |       - redis
+    | 
+    |   zookeeper:
+    |     image: confluentinc/cp-zookeeper:7.5.0
+    |     container_name: zookeeper
+    |     environment:
+    |       ZOOKEEPER_CLIENT_PORT: 2181
+    |       ZOOKEEPER_TICK_TIME: 2000
+    |     networks:
+    |       - skilllearning-net
+    | 
+    |   kafka:
+    |     image: confluentinc/cp-kafka:7.5.0
+    |     container_name: kafka
+    |     ports:
+    |       - "9092:9092"
+    |     depends_on:
+    |       - zookeeper
+    |     environment:
+    |       KAFKA_BROKER_ID: 1
+    |       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    |       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+    |       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    |     networks:
+    |       - skilllearning-net
+    | 
+    |   kafka-ui:
+    |     image: provectuslabs/kafka-ui
+    |     container_name: kafka-ui
+    |     ports:
+    |       - "8085:8080"
+    |     environment:
+    |       KAFKA_CLUSTERS_0_NAME: skilllearning-cluster
+    |       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    |     networks:
+    |       - skilllearning-net
+    | 
+    | networks:
+    |   skilllearning-net:
+    |     driver: bridge
+    | 
+    | volumes:
+    |   pgdata:
+    | 
+    | 
+    | # docker-compose up -d --build
+    | # dotnet ef migrations add InitialCreate --project SkillLearning.Infrastructure --output-dir Persistence/Migrations
+    | # dotnet ef database update --project SkillLearning.Infrastructure
+    ------------------------------------------------
+
+    - Dockerfile
+    | # Acesse https://aka.ms/customizecontainer para saber como personalizar seu contÃªiner de depuraÃ§Ã£o e como o Visual Studio usa este Dockerfile para criar suas imagens para uma depuraÃ§Ã£o mais rÃ¡pida.
+    | 
+    | # Esta fase Ã© usada durante a execuÃ§Ã£o no VS no modo rÃ¡pido (PadrÃ£o para a configuraÃ§Ã£o de DepuraÃ§Ã£o)
+    | FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+    | USER $APP_UID
+    | WORKDIR /app
+    | EXPOSE 8080
+    | EXPOSE 8081
+    | 
+    | 
+    | # Esta fase Ã© usada para compilar o projeto de serviÃ§o
+    | FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+    | ARG BUILD_CONFIGURATION=Release
+    | WORKDIR /src
+    | COPY ["SkillLearning.Api/SkillLearning.Api.csproj", "SkillLearning.Api/"]
+    | RUN dotnet restore "./SkillLearning.Api/SkillLearning.Api.csproj"
+    | COPY . .
+    | WORKDIR "/src/SkillLearning.Api"
+    | RUN dotnet build "./SkillLearning.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+    | 
+    | # Esta fase Ã© usada para publicar o projeto de serviÃ§o a ser copiado para a fase final
+    | FROM build AS publish
+    | ARG BUILD_CONFIGURATION=Release
+    | RUN dotnet publish "./SkillLearning.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+    | 
+    | # Esta fase Ã© usada na produÃ§Ã£o ou quando executada no VS no modo normal (padrÃ£o quando nÃ£o estÃ¡ usando a configuraÃ§Ã£o de DepuraÃ§Ã£o)
+    | FROM base AS final
+    | WORKDIR /app
+    | COPY --from=publish /app/publish .
+    | ENTRYPOINT ["dotnet", "SkillLearning.Api.dll"]
+    ------------------------------------------------
+
+
