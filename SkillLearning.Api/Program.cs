@@ -1,5 +1,6 @@
 using AspNetCore.Swagger.Themes;
 using Microsoft.EntityFrameworkCore;
+using SkillLearning.Api.Middlewares;
 using SkillLearning.Infrastructure.Extensions;
 using SkillLearning.Infrastructure.Persistence;
 
@@ -29,7 +30,7 @@ using (var scope = app.Services.CreateScope())
         app.Logger.LogError(ex, "An error occurred while applying database migrations.");
     }
 }
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI(ModernStyle.Futuristic);
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "SkillLearning API v1"));

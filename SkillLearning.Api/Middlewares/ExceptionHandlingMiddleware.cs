@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using System.Text.Json;
 
 namespace SkillLearning.Api.Middlewares
@@ -7,41 +9,70 @@ namespace SkillLearning.Api.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-        private readonly IHostEnvironment _env;
 
-        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger, IHostEnvironment env)
+        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
         {
             _next = next;
             _logger = logger;
-            _env = env;
         }
 
-        public async Task InvokeAsync(HttpContext httpContext)
+        public async Task InvokeAsync(HttpContext context)
         {
             try
             {
-                await _next(httpContext);
+                await _next(context);
+            }
+            catch (ValidationException validationException)
+            {
+                _logger.LogWarning(validationException, "Ocorreu um erro de validação: {Message}", validationException.Message);
+
+                context.Response.ContentType = "application/problem+json";
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+
+                var problemDetails = new ValidationProblemDetails
+                {
+                    Status = (int)HttpStatusCode.BadRequest,
+                    Type = "https://tools.ietf.org/html/rfc7807",
+                    Title = "Um ou mais erros de validação ocorreram.",
+                    Detail = "Por favor, verifique os detalhes dos erros para mais informações."
+                };
+
+                foreach (var error in validationException.Errors)
+                {
+                    if (!problemDetails.Errors.ContainsKey(error.PropertyName))
+                    {
+                        problemDetails.Errors[error.PropertyName] = new string[] { };
+                    }
+                    problemDetails.Errors[error.PropertyName] = problemDetails.Errors[error.PropertyName].Append(error.ErrorMessage).ToArray();
+                }
+
+                var json = JsonSerializer.Serialize(problemDetails, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+                await context.Response.WriteAsync(json);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unhandled exception occurred: {Message}", ex.Message);
-                await HandleExceptionAsync(httpContext, ex, _env);
+                _logger.LogError(ex, "Ocorreu uma exceção inesperada: {Message}", ex.Message);
+
+                context.Response.ContentType = "application/problem+json";
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+                var problemDetails = new ProblemDetails
+                {
+                    Status = (int)HttpStatusCode.InternalServerError,
+                    Title = "Ocorreu um erro inesperado.",
+                    Detail = "Por favor, tente novamente mais tarde.",
+                    Type = "https://tools.ietf.org/html/rfc7807/problem/internal-server-error"
+                };
+
+                var json = JsonSerializer.Serialize(problemDetails, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+                await context.Response.WriteAsync(json);
             }
-        }
-
-        private static async Task HandleExceptionAsync(HttpContext context, Exception exception, IHostEnvironment env)
-        {
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-            var response = new
-            {
-                StatusCode = context.Response.StatusCode,
-                Message = "An internal server error occurred.",
-                Detailed = env.IsDevelopment() ? exception.Message : null
-            };
-
-            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
     }
 }
