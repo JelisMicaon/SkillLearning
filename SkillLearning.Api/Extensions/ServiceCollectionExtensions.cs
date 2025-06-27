@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FluentValidation;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SkillLearning.Application.Common.Behaviors;
 using SkillLearning.Application.Common.Configuration;
 using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Application.Features.Auth.Commands;
@@ -33,6 +36,9 @@ namespace SkillLearning.Infrastructure.Extensions
                     npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.GetName().Name)));
 
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));
+
+            services.AddValidatorsFromAssembly(typeof(RegisterUserCommand).Assembly);
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IAuthService, AuthService>();
