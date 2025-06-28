@@ -40,6 +40,10 @@ namespace SkillLearning.Infrastructure.Extensions
             services.AddValidatorsFromAssembly(typeof(RegisterUserCommand).Assembly);
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            services.AddSingleton<IEventPublisher, KafkaProducerService>();
+
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IAuthService, AuthService>();
 
@@ -52,7 +56,7 @@ namespace SkillLearning.Infrastructure.Extensions
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwt.Issuer,
+                        ValidIssuer = jwt!.Issuer,
                         ValidAudience = jwt.Audience,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key))
                     };

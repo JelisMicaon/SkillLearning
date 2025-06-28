@@ -48,7 +48,7 @@ namespace SkillLearning.Infrastructure.Services
                 new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
-            return claims;
+            return await Task.FromResult(claims);
         }
     }
 }
