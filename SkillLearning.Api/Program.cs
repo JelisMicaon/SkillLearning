@@ -12,7 +12,6 @@ builder.Services.AddCustomServices(builder.Configuration);
 
 var app = builder.Build();
 
-// Migrations + Pipeline
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;

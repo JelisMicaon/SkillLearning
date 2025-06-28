@@ -1,9 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using SkillLearning.Application.Common.Configuration;
-using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Application.Features.Auth.Commands;
 
 namespace SkillLearning.Api.Controllers.Auth
@@ -13,14 +10,10 @@ namespace SkillLearning.Api.Controllers.Auth
     public class AuthController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly IAuthService _authService;
-        private readonly JwtSettings _jwtSettings;
 
-        public AuthController(IMediator mediator, IAuthService authService, IOptions<JwtSettings> jwtSettingsOptions)
+        public AuthController(IMediator mediator)
         {
             _mediator = mediator;
-            _authService = authService;
-            _jwtSettings = jwtSettingsOptions.Value;
         }
 
         [HttpPost("register")]
