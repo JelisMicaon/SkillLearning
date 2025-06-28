@@ -42,8 +42,7 @@ namespace SkillLearning.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Username")
                         .IsRequired()

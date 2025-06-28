@@ -12,7 +12,7 @@ using SkillLearning.Infrastructure.Persistence;
 namespace SkillLearning.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250624234649_InitialCreate")]
+    [Migration("20250628010345_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -45,8 +45,7 @@ namespace SkillLearning.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Username")
                         .IsRequired()

@@ -7,8 +7,6 @@
   <ItemGroup>
     <Folder Include="Commands\" />
     <Folder Include="Features\Users\Queries\" />
-    <Folder Include="UseCases\Auth\Login\" />
-    <Folder Include="UseCases\Auth\Register\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,6 +15,7 @@
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
     <PackageReference Include="MediatR" Version="12.5.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.6" />
   </ItemGroup>
 
