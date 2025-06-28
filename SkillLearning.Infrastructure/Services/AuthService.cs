@@ -2,7 +2,7 @@
 using Microsoft.IdentityModel.Tokens;
 using SkillLearning.Application.Common.Configuration;
 using SkillLearning.Application.Common.Interfaces;
-using SkillLearning.Domain.Entities;
+using SkillLearning.Application.Common.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -11,15 +11,11 @@ namespace SkillLearning.Infrastructure.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly IConfiguration _configuration;
-        private readonly IUserRepository _userRepository;
         private readonly JwtSettings _jwtSettings;
 
-        public AuthService(IConfiguration configuration, IUserRepository userRepository)
+        public AuthService(IConfiguration configuration)
         {
-            _configuration = configuration;
-            _userRepository = userRepository;
-            _jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>() ?? throw new ArgumentNullException(nameof(_jwtSettings), "JwtSettings não configurado.");
+            _jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>() ?? throw new ArgumentNullException(nameof(configuration), "JwtSettings não configurado.");
         }
 
         public string GenerateJwtToken(IEnumerable<Claim> claims, string issuer)
@@ -38,7 +34,7 @@ namespace SkillLearning.Infrastructure.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public async Task<List<Claim>> GetUserClaims(User user)
+        public async Task<List<Claim>> GetUserClaims(UserDto user)
         {
             var claims = new List<Claim>
             {
