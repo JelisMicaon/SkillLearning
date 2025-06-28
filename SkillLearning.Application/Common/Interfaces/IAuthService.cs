@@ -1,4 +1,4 @@
-﻿using SkillLearning.Domain.Entities;
+﻿using SkillLearning.Application.Common.Models;
 using System.Security.Claims;
 
 namespace SkillLearning.Application.Common.Interfaces
@@ -7,6 +7,6 @@ namespace SkillLearning.Application.Common.Interfaces
     {
         string GenerateJwtToken(IEnumerable<Claim> claims, string issuer);
 
-        Task<List<Claim>> GetUserClaims(User user);
+        Task<List<Claim>> GetUserClaims(UserDto user);
     }
 }
