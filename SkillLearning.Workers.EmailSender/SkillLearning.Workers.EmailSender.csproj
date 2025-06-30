@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-SkillLearning.Workers.EmailSender-05923a31-15dc-486a-8d20-8a07ceaa5ca8</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>$(MSBuildProjectDirectory)/..</DockerfileContext>
+    <DockerfileFile>$(MSBuildProjectDirectory)/../Dockerfile.Workers.EmailSender</DockerfileFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Confluent.Kafka" Version="2.10.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1-Preview.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SkillLearning.Application\SkillLearning.Application.csproj" />
+    <ProjectReference Include="..\SkillLearning.Infrastructure\SkillLearning.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
