@@ -12,14 +12,34 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=SkillLearningDb;Username=postgres;Password=admin;"
       Redis__ConnectionString: redis:6379
-      Kafka__BootstrapServers: kafka:9092
+      Kafka__BootstrapServers: kafka:29092
       Jwt__Key: /02j+p5N7XgL8Q1rG9tY/2mB4kP7u0xV5cR3zW6a9S0I=
-      Jwt__Issuer: http://localhost:5000
-      Jwt__Audience: https://localhost:4200
+      Jwt__Issuer: http://skilllearning-api:5000
+      Jwt__Audience: https://skilllearning-api:4200
     depends_on:
       - postgres
       - redis
       - kafka
+    networks:
+      - skilllearning-net
+
+  skilllearning-workers-emailsender:
+    container_name: skilllearning-workers-emailsender
+    build:
+      context: .
+      dockerfile: Dockerfile.Workers.EmailSender
+    environment:
+      Kafka__BootstrapServers: kafka:29092
+      EmailSettings__SmtpServer: smtp.gmail.com
+      EmailSettings__SmtpPort: 587
+      EmailSettings__SmtpUsername: jonasmacielwork@gmail.com
+      EmailSettings__SmtpPassword: rbpu netf pblj nikb
+      EmailSettings__SenderEmail: jonasmacielwork@gmail.com
+      EmailSettings__SenderName: SkillLearning
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: on-failure
     networks:
       - skilllearning-net
 
@@ -43,12 +63,14 @@ services:
       timeout: 5s
       retries: 5
       start_period: 45s
-  
+      
   redis:
     image: redis:7
     container_name: redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis-data:/data
     networks:
       - skilllearning-net
 
@@ -70,11 +92,15 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-log:/var/lib/zookeeper/log
     networks:
       - skilllearning-net
 
   kafka:
     image: confluentinc/cp-kafka:7.0.1
+    hostname: kafka
     container_name: kafka
     depends_on:
       - zookeeper
@@ -83,13 +109,23 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    volumes:
+      - kafka-data:/var/lib/kafka/data
     networks:
       - skilllearning-net
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -111,8 +147,13 @@ networks:
 
 volumes:
   pgdata:
+  zookeeper-data:
+  zookeeper-log:
+  kafka-data:
+  redis-data:
 
 
+# docker-compose down
 # docker-compose up -d --build
 # dotnet ef migrations add InitialCreate --project SkillLearning.Infrastructure --output-dir Persistence/Migrations
 # dotnet ef database update --project SkillLearning.Infrastructure

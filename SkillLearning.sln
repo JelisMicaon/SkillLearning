@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Infrastructur
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Tests", "SkillLearning.Tests\SkillLearning.Tests.csproj", "{2FE89752-EEA9-4DA5-2523-C9FD348F4DF3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Workers.EmailSender", "SkillLearning.Workers.EmailSender\SkillLearning.Workers.EmailSender.csproj", "{6C8C81A1-47A1-4581-A0D5-50B29AB7F433}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{2FE89752-EEA9-4DA5-2523-C9FD348F4DF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FE89752-EEA9-4DA5-2523-C9FD348F4DF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2FE89752-EEA9-4DA5-2523-C9FD348F4DF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C8C81A1-47A1-4581-A0D5-50B29AB7F433}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C8C81A1-47A1-4581-A0D5-50B29AB7F433}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C8C81A1-47A1-4581-A0D5-50B29AB7F433}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C8C81A1-47A1-4581-A0D5-50B29AB7F433}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
