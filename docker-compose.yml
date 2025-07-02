@@ -141,6 +141,18 @@ services:
     networks:
       - skilllearning-net
 
+  xray-daemon:
+    image: amazon/aws-xray-daemon:latest
+    container_name: xray-daemon
+    ports:
+      - "2000:2000/udp"
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+    networks:
+      - skilllearning-net
+
 networks:
   skilllearning-net:
     driver: bridge

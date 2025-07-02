@@ -18,45 +18,57 @@ namespace SkillLearning.Infrastructure.Extensions
     {
         public static void AddCustomServices(this IServiceCollection services, IConfiguration configuration)
         {
-            services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
+            // 1. Configurações fortemente tipadas
+            var jwtSection = configuration.GetSection("Jwt");
+            var jwt = jwtSection.Get<JwtSettings>() ?? throw new InvalidOperationException("JWT configuration is missing.");
+            services.Configure<JwtSettings>(jwtSection);
             services.Configure<KafkaSettings>(configuration.GetSection("Kafka"));
             services.Configure<RedisSettings>(configuration.GetSection("Redis"));
 
-            var jwt = configuration.GetSection("Jwt").Get<JwtSettings>();
-            var connectionString = configuration.GetConnectionString("Default") ?? throw new InvalidOperationException("Connection string not configured.");
+            // 2. Redis
+            var redisConn = configuration["Redis:ConnectionString"];
+            if (string.IsNullOrWhiteSpace(redisConn))
+                throw new InvalidOperationException("Redis connection string missing.");
 
-            services.AddStackExchangeRedisCache(options =>
-            {
-                options.Configuration = configuration.GetSection("Redis")?["ConnectionString"];
-            });
+            services.AddStackExchangeRedisCache(opt => opt.Configuration = redisConn);
             services.AddSingleton<ICacheService, RedisCacheService>();
 
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(connectionString, npgsql =>
-                    npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.GetName().Name)));
+            // 3. XRay Interceptor
+            services.AddSingleton<QueryPerformanceInterceptor>();
 
+            // 4. DBContext com Interceptor
+            var conn = configuration.GetConnectionString("Default") ?? throw new InvalidOperationException("Connection string not configured.");
+            services.AddDbContext<ApplicationDbContext>((sp, options) =>
+            {
+                options.UseNpgsql(conn, npgsql =>
+                    npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.GetName().Name));
+
+                var interceptor = sp.GetRequiredService<QueryPerformanceInterceptor>();
+                options.AddInterceptors(interceptor);
+            });
+
+            // 5. CQRS, Validation
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));
-
             services.AddValidatorsFromAssembly(typeof(RegisterUserCommand).Assembly);
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
+            // 6. Serviços internos
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
             services.AddSingleton<IEventPublisher, KafkaProducerService>();
-
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IAuthService, AuthService>();
 
+            // 7. JWT Auth
             services.AddAuthentication("Bearer")
-                .AddJwtBearer("Bearer", options =>
+                .AddJwtBearer("Bearer", opts =>
                 {
-                    options.TokenValidationParameters = new TokenValidationParameters
+                    opts.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwt!.Issuer,
+                        ValidIssuer = jwt.Issuer,
                         ValidAudience = jwt.Audience,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key))
                     };
@@ -64,16 +76,17 @@ namespace SkillLearning.Infrastructure.Extensions
 
             services.AddAuthorization();
 
-            services.AddSwaggerGen(options =>
+            // 8. Swagger
+            services.AddSwaggerGen(opt =>
             {
-                options.SwaggerDoc("v1", new OpenApiInfo
+                opt.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = "SkillLearning API",
                     Version = "v1",
                     Description = "API para micro-aulas e habilidades"
                 });
 
-                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
                     In = ParameterLocation.Header,
@@ -82,20 +95,20 @@ namespace SkillLearning.Infrastructure.Extensions
                     Description = "Insira o token JWT: Bearer {seu_token}"
                 });
 
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                opt.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
                 {
+                    new OpenApiSecurityScheme
                     {
-                        new OpenApiSecurityScheme
+                        Reference = new OpenApiReference
                         {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        },
-                        Array.Empty<string>()
-                    }
-                });
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
             });
         }
     }

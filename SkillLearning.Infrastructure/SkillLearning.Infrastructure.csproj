@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="AWSXRayRecorder.Core" Version="2.15.0" />
     <PackageReference Include="BCrypt.Net-Core" Version="1.6.0" />
     <PackageReference Include="Confluent.Kafka" Version="2.10.1" />
     <PackageReference Include="MailKit" Version="4.13.0" />
