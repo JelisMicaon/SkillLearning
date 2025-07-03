@@ -408,3 +408,4 @@ FodyWeavers.xsd
 # Rider's local history
 *_tree.txt
 .env
+/coveragereport
