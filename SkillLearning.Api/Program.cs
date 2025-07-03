@@ -2,10 +2,8 @@ using Amazon.XRay.Recorder.Core;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Amazon.XRay.Recorder.Handlers.AwsSdk.Internal;
 using AspNetCore.Swagger.Themes;
-using Microsoft.EntityFrameworkCore;
 using SkillLearning.Api.Middlewares;
 using SkillLearning.Infrastructure.Extensions;
-using SkillLearning.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,17 +23,6 @@ builder.Services.AddCustomServices(builder.Configuration);
 
 // App
 var app = builder.Build();
-
-// Auto-migrations
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    if (context.Database.IsNpgsql())
-    {
-        await context.Database.MigrateAsync();
-        app.Logger.LogInformation("Database migrations applied successfully.");
-    }
-}
 
 // Middleware pipeline
 app.UseXRay("SkillLearning");
