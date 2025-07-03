@@ -167,5 +167,9 @@ volumes:
 
 # docker-compose down
 # docker-compose up -d --build
+
 # dotnet ef migrations add InitialCreate --project SkillLearning.Infrastructure --output-dir Persistence/Migrations
 # dotnet ef database update --project SkillLearning.Infrastructure
+
+# dotnet test --collect:"XPlat Code Coverage"
+# reportgenerator "-reports:**/TestResults/**/*.cobertura.xml" "-targetdir:coveragereport" "-reporttypes:Html"
