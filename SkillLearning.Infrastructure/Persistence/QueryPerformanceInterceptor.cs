@@ -83,8 +83,7 @@ namespace SkillLearning.Infrastructure.Persistence
         }
 
         // SCALAR
-        public override InterceptionResult<object> ScalarExecuting(
-            DbCommand command, CommandEventData eventData, InterceptionResult<object> result)
+        public override InterceptionResult<object> ScalarExecuting(DbCommand command, CommandEventData eventData, InterceptionResult<object> result)
         {
             StartSubsegment(command);
             return base.ScalarExecuting(command, eventData, result);
@@ -97,16 +96,15 @@ namespace SkillLearning.Infrastructure.Persistence
             return base.ScalarExecutingAsync(command, eventData, result, cancellationToken);
         }
 
-        public override object ScalarExecuted(
-            DbCommand command, CommandExecutedEventData eventData, object result)
+        public override object? ScalarExecuted(DbCommand command, CommandExecutedEventData eventData, object? result)
         {
             EndSubsegment(command);
             LogIfSlow(command, eventData.Duration);
             return base.ScalarExecuted(command, eventData, result);
         }
 
-        public override ValueTask<object> ScalarExecutedAsync(
-            DbCommand command, CommandExecutedEventData eventData, object result, CancellationToken cancellationToken = default)
+        public override ValueTask<object?> ScalarExecutedAsync(
+            DbCommand command, CommandExecutedEventData eventData, object? result, CancellationToken cancellationToken = default)
         {
             EndSubsegment(command);
             LogIfSlow(command, eventData.Duration);
@@ -155,7 +153,7 @@ namespace SkillLearning.Infrastructure.Persistence
             }
         }
 
-        private void EndSubsegment(DbCommand command, Exception exception = null)
+        private void EndSubsegment(DbCommand command, Exception? exception = null)
         {
             if (_subsegments.TryRemove(command, out var sub))
             {

@@ -16,12 +16,18 @@ namespace SkillLearning.Tests.UnitTests
             result.ShouldHaveValidationErrorFor(c => c.Password);
         }
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public void Should_have_error_when_Username_is_empty(string username)
+        [Fact]
+        public void Should_have_error_when_Username_is_null()
         {
-            var command = new LoginUserCommand { Username = username };
+            var command = new LoginUserCommand { Username = null! };
+            var result = _validator.TestValidate(command);
+            result.ShouldHaveValidationErrorFor(c => c.Username);
+        }
+
+        [Fact]
+        public void Should_have_error_when_Username_is_empty()
+        {
+            var command = new LoginUserCommand { Username = "" };
             var result = _validator.TestValidate(command);
             result.ShouldHaveValidationErrorFor(c => c.Username);
         }
