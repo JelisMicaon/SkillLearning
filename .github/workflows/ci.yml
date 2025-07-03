@@ -1,7 +1,7 @@
 name: .NET CI
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [ develop, main ]
   push:
     branches: [ develop, main ]
@@ -13,37 +13,37 @@ jobs:
       pull-requests: write
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Restore dependencies
+        run: dotnet restore
 
-    - name: Build
-      run: dotnet build --no-restore --configuration Release
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
 
-    - name: Test with Code Coverage
-      run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage"
+      - name: Test with Code Coverage
+        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage"
       
-    - name: Install ReportGenerator tool
-      run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      - name: Install ReportGenerator tool
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
       
-    - name: Generate Coverage Report
-      run: |
-        reportgenerator \
-        "-reports:${{ github.workspace }}/**/TestResults/**/*.cobertura.xml" \
-        "-targetdir:${{ github.workspace }}/coveragereport" \
-        "-reporttypes:Html;MarkdownSummary"
-        
-    - name: Add Coverage Comment to PR
-      if: github.event_name == 'pull_request'
-      uses: marocchino/sticky-pull-request-comment@v2
-      with:
-        path: ${{ github.workspace }}/coveragereport/Summary.md
+      - name: Generate Coverage Report
+        run: |
+          reportgenerator \
+          "-reports:${{ github.workspace }}/**/TestResults/**/*.cobertura.xml" \
+          "-targetdir:${{ github.workspace }}/coveragereport" \
+          "-reporttypes:Html;MarkdownSummary"
+
+      - name: Add Coverage Comment to PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: ${{ github.workspace }}/coveragereport/Summary.md
