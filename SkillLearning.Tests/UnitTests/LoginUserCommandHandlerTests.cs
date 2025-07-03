@@ -61,7 +61,7 @@ namespace SkillLearning.Tests.UnitTests
             _authServiceMock.Setup(s => s.GetUserClaims(userDto)).ReturnsAsync(new List<Claim>());
             _authServiceMock.Setup(s => s.GenerateJwtToken(It.IsAny<IEnumerable<Claim>>(), It.IsAny<string>())).Returns("token");
 
-            _httpContextAccessorMock.Setup(a => a.HttpContext).Returns((HttpContext?)null);
+            _httpContextAccessorMock.Setup(a => a.HttpContext).Returns((HttpContext?)null!);
 
             UserLoginEvent? capturedEvent = null;
             _eventPublisherMock
