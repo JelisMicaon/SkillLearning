@@ -1,41 +1,46 @@
-name: .NET CI/CD
+name: .NET CI
 
 on:
   pull_request:
     branches: [ develop, main ]
   push:
-    branches: [ main ]
+    branches: [ develop, main ]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '9.0.x'
+
     - name: Restore dependencies
       run: dotnet restore
+
     - name: Build
       run: dotnet build --no-restore --configuration Release
-    - name: Test
-      run: dotnet test --configuration Release --no-build
+
+    - name: Test with Code Coverage
+      run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage"
       
-  deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: build
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
+    - name: Install ReportGenerator tool
+      run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      
+    - name: Generate Coverage Report
+      run: |
+        reportgenerator \
+        "-reports:${{ github.workspace }}/**/TestResults/**/*.cobertura.xml" \
+        "-targetdir:${{ github.workspace }}/coveragereport" \
+        "-reporttypes:Html;MarkdownSummary"
         
-    - name: Install dotnet-ef tool
-      run: dotnet tool install --global dotnet-ef
-      
-    - name: Deploy Migrations to Production
-      run: dotnet ef database update --project SkillLearning.Infrastructure -- --connection ${{ secrets.PROD_CONNECTION_STRING }}
+    - name: Add Coverage Comment to PR
+      if: github.event_name == 'pull_request'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        path: ${{ github.workspace }}/coveragereport/Summary.md
