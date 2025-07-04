@@ -12,28 +12,24 @@
 
 ## 🎯 Sobre o Projeto
 
-O **SkillLearning** é o backend robusto e escalável para uma plataforma de aprendizagem de habilidades, desenvolvida com foco em alta performance e manutenibilidade. Este projeto demonstra a construção de uma API com recursos de autenticação, gestão de usuários e um sistema de notificação assíncrona, utilizando as melhores práticas do mercado e uma arquitetura limpa.
+O **SkillLearning** é o backend robusto e escalável para uma plataforma de aprendizagem de habilidades, desenvolvida com foco em alta performance e manutenibilidade. Este projeto demonstra a construção de uma API de arquitetura limpa, padrões de design avançados e uma stack de tecnologia escalável.
 
 **Status do Projeto**: Este projeto está em desenvolvimento contínuo. Estou aplicando novos conhecimentos e tecnologias para aprimorá-lo constantemente, e ele não está em sua versão final.
 
-## ✨ Funcionalidades Principais
+---
 
-* **Sistema de Autenticação Completo**:
-    * 🔐 Registro e Login de usuários com validação de credenciais.
-    * 🔑 Geração e validação de JWT (JSON Web Tokens) para acesso seguro à API.
-    * 🔒 Hashing de senhas seguro utilizando BCrypt para proteção de dados sensíveis.
-* **Gestão de Usuários**:
-    * Cadastro, recuperação e diferenciação de informações de usuário (com perfis de `Admin` e `User`).
-* **Notificações Assíncronas**:
-    * 📧 Envio de e-mails de notificação (ex: após login) de forma assíncrona via Apache Kafka, garantindo uma experiência de usuário fluida e o desacoplamento de serviços.
-* **Caching Inteligente**:
-    * 🚀 Utilização de Redis para caching de dados frequentemente acessados, otimizando o tempo de resposta da API e reduzindo a carga no banco de dados.
-* **Validação de Requisições Robusta**:
-    * ✅ Validação de dados de entrada com FluentValidation, garantindo a integridade dos dados e um feedback claro para o cliente da API.
-* **Persistência de Dados Confiável**:
-    * 🗄️ Integração com PostgreSQL utilizando Entity Framework Core, com migrações automáticas aplicadas no startup para facilitar o desenvolvimento.
-* **API Documentada e Testável**:
-    * 📖 Documentação interativa da API via Swagger/OpenAPI, que permite explorar e testar os endpoints facilmente.
+## ✨ Conceitos e Arquitetura Aplicados
+
+Este projeto não é apenas código, é a manifestação de uma arquitetura cuidadosamente planejada para ser limpa, manutenível e escalável.
+
+* **Arquitetura Limpa (Clean Architecture):** As responsabilidades são segregadas em camadas bem definidas (`Domain`, `Application`, `Infrastructure`, `Api`), com o fluxo de dependências apontando para o núcleo do negócio (Domain), garantindo baixo acoplamento e alta testabilidade.
+* **Domain-Driven Design (DDD) Tático:** As entidades, como `User`, são ricas e contêm lógica de negócio encapsulada, prevenindo um modelo de domínio anêmico.
+* **CQRS (Command and Query Responsibility Segregation):** As operações de escrita (Commands) e leitura (Queries) são completamente separadas, permitindo otimizações independentes para cada fluxo.
+* **Padrão Mediator:** Utilizando `MediatR` para desacoplar os componentes da camada de aplicação. Os controllers disparam requisições sem conhecer os handlers, promovendo um código mais limpo e coeso.
+* **Comunicação Assíncrona com Produtor/Consumidor:** Eventos de domínio (ex: `UserLoginEvent`) são publicados no **Apache Kafka**. Serviços em background (Workers) consomem esses eventos para executar tarefas secundárias (como enviar e-mails), garantindo que a API permaneça rápida e responsiva.
+* **Injeção de Dependência (DI):** Todo o sistema é construído sobre o contêiner de DI nativo do ASP.NET Core, promovendo um design modular.
+
+---
 
 ## 🛠️ Tecnologias e Ferramentas
 
