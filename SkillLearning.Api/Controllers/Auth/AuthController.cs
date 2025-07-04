@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SkillLearning.Application.Features.Auth.Commands;
+using SkillLearning.Application.Features.Auth.Queries;
 
 namespace SkillLearning.Api.Controllers.Auth
 {
@@ -14,6 +15,15 @@ namespace SkillLearning.Api.Controllers.Auth
         public AuthController(IMediator mediator)
         {
             _mediator = mediator;
+        }
+
+        [HttpGet("exists")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CheckUserExists([FromQuery] string username, [FromQuery] string email)
+        {
+            var query = new CheckUserExistsQuery(username, email);
+            var exists = await _mediator.Send(query);
+            return Ok(new { Exists = exists });
         }
 
         [HttpPost("register")]

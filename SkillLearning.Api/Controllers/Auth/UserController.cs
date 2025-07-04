@@ -1,28 +1,34 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using SkillLearning.Application.Features.Auth.Queries;
 
 namespace SkillLearning.Infrastructure.Controllers.Auth
 {
     [ApiController]
-    [Route("api/user")]
-    public class UserController : ControllerBase
+    [Route("api/[controller]")]
+    [Authorize]
+    public class UsersController : ControllerBase
     {
-        [HttpGet("protected-data")]
-        [Authorize]
-        public IActionResult GetProtectedData()
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var username = User.FindFirst(ClaimTypes.Name)?.Value;
-            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+        private readonly IMediator _mediator;
 
-            return Ok(new
+        public UsersController(IMediator mediator)
+        {
+            _mediator = mediator;
+        }
+
+        [HttpGet("{username}")]
+        public async Task<IActionResult> GetByUsername(string username)
+        {
+            var query = new GetUserByUsernameQuery(username);
+            var userDto = await _mediator.Send(query);
+
+            if (userDto is null)
             {
-                Message = "You have access to protected data!",
-                UserId = userId,
-                Username = username,
-                Role = userRole
-            });
+                return NotFound(new { Message = "User not found." });
+            }
+
+            return Ok(userDto);
         }
     }
 }

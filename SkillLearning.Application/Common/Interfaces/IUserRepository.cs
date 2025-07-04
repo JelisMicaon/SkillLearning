@@ -8,6 +8,6 @@ namespace SkillLearning.Application.Common.Interfaces
 
         Task<User?> GetUserByUsernameAsync(string username);
 
-        Task<bool> UserExistsByUsernameAsync(string username, string email);
+        Task<bool> DoesUserExistAsync(string username, string email);
     }
 }

@@ -1,27 +1,22 @@
 ﻿using MediatR;
 using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Application.Common.Models;
-using SkillLearning.Application.Features.Auth.Queries;
 using SkillLearning.Domain.Entities;
-using SkillLearning.Domain.Enums;
 using SkillLearning.Domain.Events;
 
 namespace SkillLearning.Application.Features.Auth.Commands
 {
     public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, bool>
     {
-        private readonly IMediator _mediator;
-        private readonly IUserRepository _userRepository;
-        private readonly IEventPublisher _eventPublisher;
         private readonly ICacheService _cacheService;
+        private readonly IEventPublisher _eventPublisher;
+        private readonly IUserRepository _userRepository;
 
         public RegisterUserCommandHandler(
-            IMediator mediator,
             IUserRepository userRepository,
             IEventPublisher eventPublisher,
             ICacheService cacheService)
         {
-            _mediator = mediator;
             _userRepository = userRepository;
             _eventPublisher = eventPublisher;
             _cacheService = cacheService;
@@ -29,29 +24,15 @@ namespace SkillLearning.Application.Features.Auth.Commands
 
         public async Task<bool> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
-            var userExists = await _mediator.Send(new CheckUserExistsQuery(request.Username, request.Email), cancellationToken);
+            var userExists = await _userRepository.DoesUserExistAsync(request.Username, request.Email);
             if (userExists)
                 return false;
 
-            var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-
-            var user = new User
-            {
-                Username = request.Username,
-                Email = request.Email,
-                PasswordHash = passwordHash,
-                Role = UserRole.User
-            };
+            var user = new User(request.Username, request.Email, request.Password);
 
             await _userRepository.AddUserAsync(user);
 
-            var userDto = new UserDto(
-                user.Id,
-                user.Username,
-                user.Email,
-                user.PasswordHash,
-                user.Role
-            );
+            var userDto = new UserDto(user.Id, user.Username, user.Email, user.Role);
 
             var userIdKey = $"username:{user.Username}";
             var userKey = $"user:{user.Id}";
