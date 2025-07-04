@@ -27,7 +27,7 @@ namespace SkillLearning.Application.Features.Auth.Queries
             if (userIdByEmail.HasValue)
                 return true;
 
-            return await _userRepository.UserExistsByUsernameAsync(request.Username, request.Email);
+            return await _userRepository.DoesUserExistAsync(request.Username, request.Email);
         }
     }
 }

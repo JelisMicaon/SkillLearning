@@ -23,12 +23,12 @@ namespace SkillLearning.Tests.UnitTests
         {
             var query = new CheckUserExistsQuery("nonexistent", "nonexistent@test.com");
             _cacheServiceMock.Setup(c => c.GetAsync<Guid?>(It.IsAny<string>())).ReturnsAsync((Guid?)null); // Cache miss
-            _userRepositoryMock.Setup(r => r.UserExistsByUsernameAsync(query.Username, query.Email)).ReturnsAsync(false); // Não encontrado no DB
+            _userRepositoryMock.Setup(r => r.DoesUserExistAsync(query.Username, query.Email)).ReturnsAsync(false); // Não encontrado no DB
 
             var result = await _handler.Handle(query, CancellationToken.None);
 
             result.Should().BeFalse();
-            _userRepositoryMock.Verify(r => r.UserExistsByUsernameAsync(query.Username, query.Email), Times.Once);
+            _userRepositoryMock.Verify(r => r.DoesUserExistAsync(query.Username, query.Email), Times.Once);
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace SkillLearning.Tests.UnitTests
             var result = await _handler.Handle(query, CancellationToken.None);
 
             result.Should().BeTrue();
-            _userRepositoryMock.Verify(r => r.UserExistsByUsernameAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _userRepositoryMock.Verify(r => r.DoesUserExistAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -57,7 +57,7 @@ namespace SkillLearning.Tests.UnitTests
             var result = await _handler.Handle(query, CancellationToken.None);
 
             result.Should().BeTrue();
-            _userRepositoryMock.Verify(r => r.UserExistsByUsernameAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _userRepositoryMock.Verify(r => r.DoesUserExistAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -65,12 +65,12 @@ namespace SkillLearning.Tests.UnitTests
         {
             var query = new CheckUserExistsQuery("dbuser", "db@test.com");
             _cacheServiceMock.Setup(c => c.GetAsync<Guid?>(It.IsAny<string>())).ReturnsAsync((Guid?)null); // Cache miss em tudo
-            _userRepositoryMock.Setup(r => r.UserExistsByUsernameAsync(query.Username, query.Email)).ReturnsAsync(true); // Encontrado no DB
+            _userRepositoryMock.Setup(r => r.DoesUserExistAsync(query.Username, query.Email)).ReturnsAsync(true); // Encontrado no DB
 
             var result = await _handler.Handle(query, CancellationToken.None);
 
             result.Should().BeTrue();
-            _userRepositoryMock.Verify(r => r.UserExistsByUsernameAsync(query.Username, query.Email), Times.Once);
+            _userRepositoryMock.Verify(r => r.DoesUserExistAsync(query.Username, query.Email), Times.Once);
         }
     }
 }

@@ -2,5 +2,5 @@
 
 namespace SkillLearning.Application.Common.Models
 {
-    public record UserDto(Guid Id, string Username, string Email, string PasswordHash, UserRole Role);
+    public record UserDto(Guid Id, string Username, string Email, UserRole Role);
 }
