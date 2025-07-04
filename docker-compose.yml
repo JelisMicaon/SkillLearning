@@ -173,3 +173,6 @@ volumes:
 
 # dotnet test --collect:"XPlat Code Coverage"
 # reportgenerator "-reports:**/TestResults/**/*.cobertura.xml" "-targetdir:coveragereport" "-reporttypes:Html"
+
+# dotnet user-secrets list --project SkillLearning.Api
+# dotnet user-secrets list --project SkillLearning.Workers.EmailSender

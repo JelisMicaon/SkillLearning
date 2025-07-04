@@ -1,10 +1,11 @@
-﻿using MediatR;
+﻿using FluentResults;
+using MediatR;
 using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Application.Common.Models;
 
 namespace SkillLearning.Application.Features.Auth.Queries
 {
-    public class GetUserByUsernameQueryHandler : IRequestHandler<GetUserByUsernameQuery, UserDto?>
+    public class GetUserByUsernameQueryHandler : IRequestHandler<GetUserByUsernameQuery, Result<UserDto>>
     {
         private readonly ICacheService _cacheService;
         private readonly IUserRepository _userRepository;
@@ -15,7 +16,7 @@ namespace SkillLearning.Application.Features.Auth.Queries
             _userRepository = userRepository;
         }
 
-        public async Task<UserDto?> Handle(GetUserByUsernameQuery request, CancellationToken cancellationToken)
+        public async Task<Result<UserDto>> Handle(GetUserByUsernameQuery request, CancellationToken cancellationToken)
         {
             var userIdCacheKey = $"username:{request.Username}";
             var userId = await _cacheService.GetAsync<Guid?>(userIdCacheKey);
@@ -25,12 +26,12 @@ namespace SkillLearning.Application.Features.Auth.Queries
                 var userCacheKey = $"user:{userId.Value}";
                 var cachedUserDto = await _cacheService.GetAsync<UserDto>(userCacheKey);
                 if (cachedUserDto != null)
-                    return cachedUserDto;
+                    return Result.Ok(cachedUserDto);
             }
 
             var user = await _userRepository.GetUserByUsernameAsync(request.Username);
             if (user == null)
-                return null;
+                return Result.Fail<UserDto>("Usuário não encontrado.");
 
             var userDto = new UserDto(user.Id, user.Username, user.Email, user.Role);
 
@@ -38,7 +39,7 @@ namespace SkillLearning.Application.Features.Auth.Queries
             string userKey = $"user:{user.Id}";
             await _cacheService.SetAsync(userKey, userDto, TimeSpan.FromMinutes(30));
 
-            return userDto;
+            return Result.Ok(userDto);
         }
     }
 }
