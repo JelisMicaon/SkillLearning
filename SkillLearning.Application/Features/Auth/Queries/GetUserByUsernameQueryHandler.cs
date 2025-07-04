@@ -18,8 +18,8 @@ namespace SkillLearning.Application.Features.Auth.Queries
         public async Task<UserDto?> Handle(GetUserByUsernameQuery request, CancellationToken cancellationToken)
         {
             var userIdCacheKey = $"username:{request.Username}";
-
             var userId = await _cacheService.GetAsync<Guid?>(userIdCacheKey);
+
             if (userId.HasValue)
             {
                 var userCacheKey = $"user:{userId.Value}";
@@ -32,9 +32,9 @@ namespace SkillLearning.Application.Features.Auth.Queries
             if (user == null)
                 return null;
 
-            var userDto = new UserDto(user.Id, user.Username, user.Email, user.PasswordHash, user.Role);
-            await _cacheService.SetAsync(userIdCacheKey, user.Id, TimeSpan.FromMinutes(10));
+            var userDto = new UserDto(user.Id, user.Username, user.Email, user.Role);
 
+            await _cacheService.SetAsync(userIdCacheKey, user.Id, TimeSpan.FromMinutes(10));
             string userKey = $"user:{user.Id}";
             await _cacheService.SetAsync(userKey, userDto, TimeSpan.FromMinutes(30));
 

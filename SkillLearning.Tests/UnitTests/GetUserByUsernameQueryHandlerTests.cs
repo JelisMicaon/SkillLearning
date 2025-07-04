@@ -24,31 +24,45 @@ namespace SkillLearning.Tests.UnitTests
         [Fact]
         public async Task Handle_ShouldFetchFromDb_WhenUserIdInCacheButDtoIsNot()
         {
+            // Arrange
             var query = new GetUserByUsernameQuery("testuser");
             var userId = Guid.NewGuid();
-            var userFromDb = new User { Id = userId, Username = "testuser", Email = "test@test.com", PasswordHash = "hash" };
+            var userFromDb = new User(
+                id: userId,
+                username: "testuser",
+                email: "test@test.com",
+                passwordHash: "hash",
+                role: UserRole.User,
+                createdAt: DateTime.UtcNow
+            );
 
             _cacheServiceMock.Setup(c => c.GetAsync<Guid?>($"username:{query.Username}")).ReturnsAsync(userId);
             _cacheServiceMock.Setup(c => c.GetAsync<UserDto>($"user:{userId}")).ReturnsAsync((UserDto?)null);
             _userRepositoryMock.Setup(r => r.GetUserByUsernameAsync(query.Username)).ReturnsAsync(userFromDb);
 
+            // Act
             var result = await _handler.Handle(query, CancellationToken.None);
 
+            // Assert
             result.Should().NotBeNull();
+            result!.Username.Should().Be(userFromDb.Username);
             _userRepositoryMock.Verify(r => r.GetUserByUsernameAsync(query.Username), Times.Once);
-            _cacheServiceMock.Verify(c => c.SetAsync($"user:{userId}", It.IsAny<UserDto>(), It.IsAny<TimeSpan?>()), Times.Once);
+            _cacheServiceMock.Verify(c => c.SetAsync($"user:{userId}", It.Is<UserDto>(dto => dto.Id == userId), It.IsAny<TimeSpan?>()), Times.Once);
         }
 
         [Fact]
         public async Task Handle_ShouldReturnNull_WhenUserIsNotFoundInRepository()
         {
+            // Arrange
             var query = new GetUserByUsernameQuery("notfounduser");
 
             _cacheServiceMock.Setup(c => c.GetAsync<Guid?>(It.IsAny<string>())).ReturnsAsync((Guid?)null);
             _userRepositoryMock.Setup(r => r.GetUserByUsernameAsync(query.Username)).ReturnsAsync((User?)null);
 
+            // Act
             var result = await _handler.Handle(query, CancellationToken.None);
 
+            // Assert
             result.Should().BeNull();
             _cacheServiceMock.Verify(c => c.SetAsync(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<TimeSpan?>()), Times.Never);
         }
@@ -56,15 +70,20 @@ namespace SkillLearning.Tests.UnitTests
         [Fact]
         public async Task Handle_ShouldReturnUserFromCache_WhenCacheIsHit()
         {
+            // Arrange
             var query = new GetUserByUsernameQuery("testuser");
             var userId = Guid.NewGuid();
-            var cachedUserDto = new UserDto(userId, "testuser", "test@test.com", "hash", UserRole.User);
+
+            var cachedUserDto = new UserDto(userId, "testuser", "test@test.com", UserRole.User);
 
             _cacheServiceMock.Setup(c => c.GetAsync<Guid?>($"username:{query.Username}")).ReturnsAsync(userId);
             _cacheServiceMock.Setup(c => c.GetAsync<UserDto>($"user:{userId}")).ReturnsAsync(cachedUserDto);
 
+            // Act
             var result = await _handler.Handle(query, CancellationToken.None);
 
+            // Assert
+            result.Should().NotBeNull();
             result.Should().BeEquivalentTo(cachedUserDto);
             _userRepositoryMock.Verify(r => r.GetUserByUsernameAsync(It.IsAny<string>()), Times.Never);
         }
@@ -72,26 +91,31 @@ namespace SkillLearning.Tests.UnitTests
         [Fact]
         public async Task Handle_ShouldReturnUserFromRepository_AndSetCache_WhenCacheIsMiss()
         {
+            // Arrange
             var query = new GetUserByUsernameQuery("newuser");
-            var userFromDb = new User
-            {
-                Id = Guid.NewGuid(),
-                Username = "newuser",
-                Email = "new@test.com",
-                PasswordHash = "hash",
-                Role = UserRole.User
-            };
+
+            var userFromDb = new User(
+                id: Guid.NewGuid(),
+                username: "newuser",
+                email: "new@test.com",
+                passwordHash: "some_hash",
+                role: UserRole.User,
+                createdAt: DateTime.UtcNow
+            );
 
             _cacheServiceMock.Setup(c => c.GetAsync<Guid?>($"username:{query.Username}")).ReturnsAsync((Guid?)null);
             _userRepositoryMock.Setup(r => r.GetUserByUsernameAsync(query.Username)).ReturnsAsync(userFromDb);
 
+            // Act
             var result = await _handler.Handle(query, CancellationToken.None);
 
+            // Assert
             result.Should().NotBeNull();
             result!.Username.Should().Be(userFromDb.Username);
+            result.Email.Should().Be(userFromDb.Email);
 
             _userRepositoryMock.Verify(r => r.GetUserByUsernameAsync(query.Username), Times.Once);
-            _cacheServiceMock.Verify(c => c.SetAsync($"user:{userFromDb.Id}", It.IsAny<UserDto>(), It.IsAny<TimeSpan?>()), Times.Once);
+            _cacheServiceMock.Verify(c => c.SetAsync($"user:{userFromDb.Id}", It.Is<UserDto>(dto => dto.Id == userFromDb.Id), It.IsAny<TimeSpan?>()), Times.Once);
         }
     }
 }

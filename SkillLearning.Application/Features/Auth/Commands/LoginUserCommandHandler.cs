@@ -4,28 +4,26 @@ using Microsoft.Extensions.Options;
 using SkillLearning.Application.Common.Configuration;
 using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Application.Common.Models;
-using SkillLearning.Application.Features.Auth.Queries;
 using SkillLearning.Domain.Events;
 
 namespace SkillLearning.Application.Features.Auth.Commands
 {
     public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, AuthResultDto?>
     {
-        private readonly IMediator _mediator;
         private readonly IAuthService _authService;
-        private readonly JwtSettings _jwtSettings;
         private readonly IEventPublisher _eventPublisher;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly JwtSettings _jwtSettings;
+        private readonly IUserRepository _userRepository;
 
         public LoginUserCommandHandler(
-            IMediator mediator,
             IUserRepository userRepository,
             IAuthService authService,
             IOptions<JwtSettings> jwtSettingsOptions,
             IEventPublisher eventPublisher,
             IHttpContextAccessor httpContextAccessor)
         {
-            _mediator = mediator;
+            _userRepository = userRepository;
             _authService = authService;
             _jwtSettings = jwtSettingsOptions.Value;
             _eventPublisher = eventPublisher;
@@ -34,13 +32,15 @@ namespace SkillLearning.Application.Features.Auth.Commands
 
         public async Task<AuthResultDto?> Handle(LoginUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await _mediator.Send(new GetUserByUsernameQuery(request.Username), cancellationToken);
+            var user = await _userRepository.GetUserByUsernameAsync(request.Username);
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            if (user == null || !user.VerifyPassword(request.Password))
                 return null;
 
-            var claims = await _authService.GetUserClaims(user);
+            var userDto = new UserDto(user.Id, user.Username, user.Email, user.Role);
+            var claims = await _authService.GetUserClaims(userDto);
             var token = _authService.GenerateJwtToken(claims, _jwtSettings.Issuer);
+
             var ipAddress = _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "Unknown";
             var userAgent = _httpContextAccessor.HttpContext?.Request?.Headers["User-Agent"].ToString() ?? "Unknown";
 

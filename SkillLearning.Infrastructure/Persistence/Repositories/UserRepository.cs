@@ -22,7 +22,7 @@ namespace SkillLearning.Infrastructure.Persistence.Repositories
         public async Task<User?> GetUserByUsernameAsync(string username)
             => await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username == username);
 
-        public async Task<bool> UserExistsByUsernameAsync(string username, string email)
+        public async Task<bool> DoesUserExistAsync(string username, string email)
             => await _context.Users.AsNoTracking().AnyAsync(u => u.Username == username || u.Email == email);
     }
 }
