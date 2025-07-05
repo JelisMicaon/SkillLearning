@@ -21,55 +21,71 @@ namespace SkillLearning.Tests.UnitTests
         [Fact]
         public async Task Handle_ShouldReturnFalse_WhenUserDoesNotExistAnywhere()
         {
+            // Arrange
             var query = new CheckUserExistsQuery("nonexistent", "nonexistent@test.com");
-            _cacheServiceMock.Setup(c => c.GetAsync<Guid?>(It.IsAny<string>())).ReturnsAsync((Guid?)null); // Cache miss
-            _userRepositoryMock.Setup(r => r.DoesUserExistAsync(query.Username, query.Email)).ReturnsAsync(false); // Não encontrado no DB
+            _cacheServiceMock.Setup(c => c.GetAsync<Guid?>(It.IsAny<string>())).ReturnsAsync((Guid?)null);
+            _userRepositoryMock.Setup(r => r.DoesUserExistAsync(query.Username, query.Email)).ReturnsAsync(false);
 
+            // Act
             var result = await _handler.Handle(query, CancellationToken.None);
 
-            result.Should().BeFalse();
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Should().BeFalse();
             _userRepositoryMock.Verify(r => r.DoesUserExistAsync(query.Username, query.Email), Times.Once);
         }
 
         [Fact]
         public async Task Handle_ShouldReturnTrue_WhenUserExistsInCacheByEmail()
         {
+            // Arrange
             var query = new CheckUserExistsQuery("newuser", "cached@test.com");
             var usernameCacheKey = $"username:{query.Username}";
             var emailCacheKey = $"email:{query.Email}";
 
-            _cacheServiceMock.Setup(c => c.GetAsync<Guid?>(usernameCacheKey)).ReturnsAsync((Guid?)null); // Cache miss no username
-            _cacheServiceMock.Setup(c => c.GetAsync<Guid?>(emailCacheKey)).ReturnsAsync(Guid.NewGuid()); // Cache hit no email
+            _cacheServiceMock.Setup(c => c.GetAsync<Guid?>(usernameCacheKey)).ReturnsAsync((Guid?)null);
+            _cacheServiceMock.Setup(c => c.GetAsync<Guid?>(emailCacheKey)).ReturnsAsync(Guid.NewGuid());
 
+            // Act
             var result = await _handler.Handle(query, CancellationToken.None);
 
-            result.Should().BeTrue();
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Should().BeTrue();
             _userRepositoryMock.Verify(r => r.DoesUserExistAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
         public async Task Handle_ShouldReturnTrue_WhenUserExistsInCacheByUsername()
         {
+            // Arrange
             var query = new CheckUserExistsQuery("cacheduser", "cached@test.com");
             var cacheKey = $"username:{query.Username}";
             _cacheServiceMock.Setup(c => c.GetAsync<Guid?>(cacheKey)).ReturnsAsync(Guid.NewGuid());
 
+            // Act
             var result = await _handler.Handle(query, CancellationToken.None);
 
-            result.Should().BeTrue();
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Should().BeTrue();
             _userRepositoryMock.Verify(r => r.DoesUserExistAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
         public async Task Handle_ShouldReturnTrue_WhenUserExistsInRepository()
         {
+            // Arrange
             var query = new CheckUserExistsQuery("dbuser", "db@test.com");
-            _cacheServiceMock.Setup(c => c.GetAsync<Guid?>(It.IsAny<string>())).ReturnsAsync((Guid?)null); // Cache miss em tudo
-            _userRepositoryMock.Setup(r => r.DoesUserExistAsync(query.Username, query.Email)).ReturnsAsync(true); // Encontrado no DB
+            _cacheServiceMock.Setup(c => c.GetAsync<Guid?>(It.IsAny<string>())).ReturnsAsync((Guid?)null);
+            _userRepositoryMock.Setup(r => r.DoesUserExistAsync(query.Username, query.Email)).ReturnsAsync(true);
 
+            // Act
             var result = await _handler.Handle(query, CancellationToken.None);
 
-            result.Should().BeTrue();
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Should().BeTrue();
             _userRepositoryMock.Verify(r => r.DoesUserExistAsync(query.Username, query.Email), Times.Once);
         }
     }

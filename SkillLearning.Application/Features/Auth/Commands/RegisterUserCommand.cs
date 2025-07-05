@@ -1,8 +1,9 @@
-﻿using MediatR;
+﻿using FluentResults;
+using MediatR;
 
 namespace SkillLearning.Application.Features.Auth.Commands
 {
-    public class RegisterUserCommand : IRequest<bool>
+    public class RegisterUserCommand : IRequest<Result<bool>>
     {
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;

@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using FluentResults;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using SkillLearning.Application.Common.Configuration;
@@ -8,7 +9,7 @@ using SkillLearning.Domain.Events;
 
 namespace SkillLearning.Application.Features.Auth.Commands
 {
-    public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, AuthResultDto?>
+    public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Result<AuthResultDto>>
     {
         private readonly IAuthService _authService;
         private readonly IEventPublisher _eventPublisher;
@@ -30,12 +31,12 @@ namespace SkillLearning.Application.Features.Auth.Commands
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<AuthResultDto?> Handle(LoginUserCommand request, CancellationToken cancellationToken)
+        public async Task<Result<AuthResultDto>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
         {
             var user = await _userRepository.GetUserByUsernameAsync(request.Username);
 
             if (user == null || !user.VerifyPassword(request.Password))
-                return null;
+                return Result.Fail<AuthResultDto>("Nome de usuário ou senha inválidos.");
 
             var userDto = new UserDto(user.Id, user.Username, user.Email, user.Role);
             var claims = await _authService.GetUserClaims(userDto);
@@ -47,7 +48,8 @@ namespace SkillLearning.Application.Features.Auth.Commands
             var userLoginEvent = new UserLoginEvent(user.Id, user.Username, user.Email, DateTime.UtcNow, ipAddress, userAgent);
             await _eventPublisher.PublishAsync(userLoginEvent);
 
-            return new AuthResultDto(token, DateTime.UtcNow.AddMinutes(30));
+            var authResult = new AuthResultDto(token, DateTime.UtcNow.AddMinutes(30));
+            return Result.Ok(authResult);
         }
     }
 }
