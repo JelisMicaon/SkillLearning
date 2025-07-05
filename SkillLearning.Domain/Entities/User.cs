@@ -1,6 +1,7 @@
 ﻿using SkillLearning.Domain.Common;
 using SkillLearning.Domain.Enums;
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Mail;
 
 namespace SkillLearning.Domain.Entities
 {
@@ -32,6 +33,28 @@ namespace SkillLearning.Domain.Entities
         public string PasswordHash { get; private set; } = string.Empty;
         public UserRole Role { get; private set; } = UserRole.User;
         public string Username { get; private set; } = string.Empty;
+
+        public void ChangeEmail(string newEmail)
+        {
+            if (string.IsNullOrWhiteSpace(newEmail))
+                throw new ArgumentException("O e-mail não pode ser nulo ou vazio.", nameof(newEmail));
+
+            var normalizedEmail = newEmail.Trim().ToLowerInvariant();
+
+            try
+            {
+                var _ = new MailAddress(normalizedEmail);
+            }
+            catch (FormatException)
+            {
+                throw new ArgumentException("O formato do e-mail é inválido.", nameof(newEmail));
+            }
+
+            if (Email == normalizedEmail)
+                return;
+
+            Email = normalizedEmail;
+        }
 
         public bool VerifyPassword(string plainTextPassword)
         {

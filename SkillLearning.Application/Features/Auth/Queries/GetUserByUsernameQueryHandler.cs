@@ -1,5 +1,6 @@
 ﻿using FluentResults;
 using MediatR;
+using SkillLearning.Application.Common.Errors;
 using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Application.Common.Models;
 
@@ -31,7 +32,7 @@ namespace SkillLearning.Application.Features.Auth.Queries
 
             var user = await _userRepository.GetUserByUsernameAsync(request.Username);
             if (user == null)
-                return Result.Fail<UserDto>("Usuário não encontrado.");
+                return Result.Fail(new NotFoundError("Usuário não encontrado."));
 
             var userDto = new UserDto(user.Id, user.Username, user.Email, user.Role);
 
