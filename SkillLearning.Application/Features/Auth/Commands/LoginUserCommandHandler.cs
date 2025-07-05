@@ -6,6 +6,7 @@ using SkillLearning.Application.Common.Configuration;
 using SkillLearning.Application.Common.Errors;
 using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Application.Common.Models;
+using SkillLearning.Domain.Entities;
 using SkillLearning.Domain.Events;
 
 namespace SkillLearning.Application.Features.Auth.Commands
@@ -41,15 +42,18 @@ namespace SkillLearning.Application.Features.Auth.Commands
 
             var userDto = new UserDto(user.Id, user.Username, user.Email, user.Role);
             var claims = await _authService.GetUserClaims(userDto);
-            var token = _authService.GenerateJwtToken(claims, _jwtSettings.Issuer);
+            var accessToken = _authService.GenerateJwtToken(claims, _jwtSettings.Issuer);
+
+            var refreshToken = new RefreshToken(TimeSpan.FromDays(7));
+            user.AddRefreshToken(refreshToken);
+            await _userRepository.UpdateUserAsync(user);
 
             var ipAddress = _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "Unknown";
             var userAgent = _httpContextAccessor.HttpContext?.Request?.Headers["User-Agent"].ToString() ?? "Unknown";
-
             var userLoginEvent = new UserLoginEvent(user.Id, user.Username, user.Email, DateTime.UtcNow, ipAddress, userAgent);
             await _eventPublisher.PublishAsync(userLoginEvent);
 
-            var authResult = new AuthResultDto(token, DateTime.UtcNow.AddMinutes(30));
+            var authResult = new AuthResultDto(accessToken, refreshToken.Token);
             return Result.Ok(authResult);
         }
     }

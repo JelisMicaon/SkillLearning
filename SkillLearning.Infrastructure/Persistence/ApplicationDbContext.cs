@@ -10,12 +10,14 @@ namespace SkillLearning.Infrastructure.Persistence
         {
         }
 
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfiguration(new UserConfiguration());
+            modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
         }
     }
 }
