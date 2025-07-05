@@ -72,13 +72,33 @@ namespace SkillLearning.Tests.UnitTests
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            result.Should().NotBeNull();
-            result!.Token.Should().Be(expectedToken);
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Should().NotBeNull();
+            result.Value.Token.Should().Be(expectedToken);
             _eventPublisherMock.Verify(p => p.PublishAsync(It.IsAny<UserLoginEvent>(), null), Times.Once);
         }
 
         [Fact]
-        public async Task Handle_ShouldReturnNull_WhenPasswordIsIncorrect()
+        public async Task Handle_ShouldReturnFailedResult_WhenUserNotFound()
+        {
+            // Arrange
+            var command = new LoginUserCommand { Username = "unknown", Password = "password" };
+
+            _userRepositoryMock
+                .Setup(r => r.GetUserByUsernameAsync(command.Username))
+                .ReturnsAsync((User?)null);
+
+            // Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            result.IsFailed.Should().BeTrue();
+            result.HasError(e => e.Message == "Nome de usuário ou senha inválidos.").Should().BeTrue();
+            _eventPublisherMock.Verify(p => p.PublishAsync(It.IsAny<UserLoginEvent>(), null), Times.Never);
+        }
+
+        [Fact]
+        public async Task Handle_ShouldReturnFailedResult_WhenPasswordIsIncorrect()
         {
             // Arrange
             var command = new LoginUserCommand { Username = "testuser", Password = "wrongpassword" };
@@ -92,25 +112,8 @@ namespace SkillLearning.Tests.UnitTests
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            result.Should().BeNull();
-            _eventPublisherMock.Verify(p => p.PublishAsync(It.IsAny<UserLoginEvent>(), null), Times.Never);
-        }
-
-        [Fact]
-        public async Task Handle_ShouldReturnNull_WhenUserNotFound()
-        {
-            // Arrange
-            var command = new LoginUserCommand { Username = "unknown", Password = "password" };
-
-            _userRepositoryMock
-                .Setup(r => r.GetUserByUsernameAsync(command.Username))
-                .ReturnsAsync((User?)null);
-
-            // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
-
-            // Assert
-            result.Should().BeNull();
+            result.IsFailed.Should().BeTrue();
+            result.HasError(e => e.Message == "Nome de usuário ou senha inválidos.").Should().BeTrue();
             _eventPublisherMock.Verify(p => p.PublishAsync(It.IsAny<UserLoginEvent>(), null), Times.Never);
         }
 

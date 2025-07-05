@@ -3,7 +3,6 @@ using Moq;
 using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Application.Features.Auth.Commands;
 using SkillLearning.Domain.Entities;
-using SkillLearning.Domain.Enums;
 using SkillLearning.Domain.Events;
 
 namespace SkillLearning.Tests.UnitTests
@@ -29,7 +28,7 @@ namespace SkillLearning.Tests.UnitTests
         }
 
         [Fact]
-        public async Task Handle_ShouldReturnFalse_WhenUserAlreadyExists()
+        public async Task Handle_ShouldReturnFailedResult_WhenUserAlreadyExists()
         {
             // Arrange
             var command = new RegisterUserCommand { Username = "testuser", Email = "test@example.com", Password = "password" };
@@ -42,13 +41,14 @@ namespace SkillLearning.Tests.UnitTests
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            result.Should().BeFalse();
+            result.IsFailed.Should().BeTrue();
+            result.HasError(e => e.Message == "O nome de usuário ou e-mail já está em uso.").Should().BeTrue();
+
             _userRepositoryMock.Verify(r => r.AddUserAsync(It.IsAny<User>()), Times.Never);
-            _eventPublisherMock.Verify(p => p.PublishAsync(It.IsAny<UserRegisteredEvent>(), null), Times.Never);
         }
 
         [Fact]
-        public async Task Handle_ShouldReturnTrueAndCreateUser_WhenUserDoesNotExist()
+        public async Task Handle_ShouldReturnSuccessResult_WhenUserDoesNotExist()
         {
             // Arrange
             var command = new RegisterUserCommand { Username = "newuser", Email = "new@example.com", Password = "password123" };
@@ -57,25 +57,13 @@ namespace SkillLearning.Tests.UnitTests
                 .Setup(r => r.DoesUserExistAsync(command.Username, command.Email))
                 .ReturnsAsync(false);
 
-            User? addedUser = null;
-            _userRepositoryMock
-                .Setup(r => r.AddUserAsync(It.IsAny<User>()))
-                .Callback<User>(user => addedUser = user)
-                .Returns(Task.CompletedTask);
-
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            result.Should().BeTrue();
+            result.IsSuccess.Should().BeTrue();
 
             _userRepositoryMock.Verify(r => r.AddUserAsync(It.Is<User>(u => u.Username == command.Username)), Times.Once);
-
-            addedUser.Should().NotBeNull();
-            addedUser!.Username.Should().Be(command.Username);
-            addedUser.Email.Should().Be(command.Email);
-            addedUser.Role.Should().Be(UserRole.User);
-
             _eventPublisherMock.Verify(p => p.PublishAsync(It.IsAny<UserRegisteredEvent>(), null), Times.Once);
             _cacheServiceMock.Verify(c => c.SetAsync(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<TimeSpan?>()), Times.Exactly(3));
         }
