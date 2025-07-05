@@ -6,8 +6,12 @@ namespace SkillLearning.Application.Common.Interfaces
     {
         Task AddUserAsync(User user);
 
+        Task<bool> DoesUserExistAsync(string username, string email);
+
+        Task<User?> GetUserByIdAsync(Guid userId);
+
         Task<User?> GetUserByUsernameAsync(string username);
 
-        Task<bool> DoesUserExistAsync(string username, string email);
+        Task UpdateUserAsync(User user);
     }
 }

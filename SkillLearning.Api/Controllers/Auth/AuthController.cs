@@ -1,9 +1,9 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SkillLearning.Api.Controllers.Common;
 using SkillLearning.Application.Features.Auth.Commands;
 using SkillLearning.Application.Features.Auth.Queries;
-using SkillLearning.Infrastructure.Controllers.Common;
 
 namespace SkillLearning.Api.Controllers.Auth
 {
@@ -40,6 +40,9 @@ namespace SkillLearning.Api.Controllers.Auth
         public async Task<IActionResult> Register([FromBody] RegisterUserCommand command)
         {
             var result = await _mediator.Send(command);
+            if (result.IsSuccess)
+                return Ok(new { Message = "Usuário registrado com sucesso!" });
+
             return HandleResult(result);
         }
     }

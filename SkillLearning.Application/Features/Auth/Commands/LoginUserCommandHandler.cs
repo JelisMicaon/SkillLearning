@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using SkillLearning.Application.Common.Configuration;
+using SkillLearning.Application.Common.Errors;
 using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Application.Common.Models;
 using SkillLearning.Domain.Events;
@@ -36,7 +37,7 @@ namespace SkillLearning.Application.Features.Auth.Commands
             var user = await _userRepository.GetUserByUsernameAsync(request.Username);
 
             if (user == null || !user.VerifyPassword(request.Password))
-                return Result.Fail<AuthResultDto>("Nome de usuário ou senha inválidos.");
+                return Result.Fail(new AuthenticationError("Nome de usuário ou senha inválidos."));
 
             var userDto = new UserDto(user.Id, user.Username, user.Email, user.Role);
             var claims = await _authService.GetUserClaims(userDto);

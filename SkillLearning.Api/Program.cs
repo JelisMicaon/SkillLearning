@@ -2,8 +2,10 @@ using Amazon.XRay.Recorder.Core;
 using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using Amazon.XRay.Recorder.Handlers.AwsSdk.Internal;
 using AspNetCore.Swagger.Themes;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using SkillLearning.Api.Extensions;
 using SkillLearning.Api.Middlewares;
-using SkillLearning.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +19,12 @@ AWSSDKHandler.RegisterXRayForAllServices();
 builder.Services.AddTransient<XRayPipelineHandler>();
 
 // Services
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+        options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCustomServices(builder.Configuration);
 
