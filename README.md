@@ -15,7 +15,7 @@
 
 **SkillLearning** é um backend robusto para uma plataforma de aprendizagem, construído com .NET para demonstrar a aplicação de uma arquitetura limpa, padrões de design avançados e uma stack de tecnologia moderna e escalável.
 
-*Este projeto está em desenvolvimento contínuo como um portfólio vivo, refletindo a evolução de conhecimentos e a aplicação de novas tecnologias.*
+*Este projeto está em desenvolvimento contínuo como um portfólio vivo, refletindo a evolução de conhecimentos e a aplicação de novas tecnologias. (o README pode estar desatualizado perante alterações do projeto)*
 
 ---
 
