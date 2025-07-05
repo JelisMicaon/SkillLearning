@@ -133,8 +133,13 @@ namespace SkillLearning.Infrastructure.Persistence
             AWSXRayRecorder.Instance.BeginSubsegment("EFCore DbCommand");
             if (AWSXRayRecorder.Instance.GetEntity() is Subsegment sub)
             {
-                sub.AddMetadata("db.statement", command.CommandText);
-                sub.AddMetadata("db.connection_string", command.Connection?.ConnectionString);
+                var commandText = command.CommandText;
+                if (commandText.Length > 2000)
+                {
+                    commandText = commandText[..2000] + " [TRUNCATED]";
+                }
+
+                sub.AddMetadata("db.statement", commandText);
                 sub.AddMetadata("db.type", "postgres");
 
                 var httpContext = _httpContextAccessor.HttpContext;
@@ -142,11 +147,6 @@ namespace SkillLearning.Infrastructure.Persistence
                 {
                     var userId = httpContext.User?.FindFirst("sub")?.Value ?? "anonymous";
                     sub.AddMetadata("user.id", userId);
-                    sub.AddMetadata("request.path", httpContext.Request.Path);
-                    sub.AddMetadata("request.method", httpContext.Request.Method);
-
-                    sub.AddAnnotation("UserId", userId);
-                    sub.AddAnnotation("HttpMethod", httpContext.Request.Method);
                 }
 
                 _subsegments[command] = sub;

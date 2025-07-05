@@ -12,7 +12,7 @@ using SkillLearning.Infrastructure.Persistence.Repositories;
 using SkillLearning.Infrastructure.Services;
 using System.Text;
 
-namespace SkillLearning.Infrastructure.Extensions
+namespace SkillLearning.Api.Extensions
 {
     public static class ServiceCollectionExtensions
     {
@@ -96,19 +96,19 @@ namespace SkillLearning.Infrastructure.Extensions
                 });
 
                 opt.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
                 {
-                    new OpenApiSecurityScheme
                     {
-                        Reference = new OpenApiReference
+                        new OpenApiSecurityScheme
                         {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    Array.Empty<string>()
-                }
-            });
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
             });
         }
     }

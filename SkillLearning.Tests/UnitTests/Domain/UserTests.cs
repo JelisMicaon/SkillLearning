@@ -6,6 +6,50 @@ namespace SkillLearning.Tests.UnitTests.Domain
     public class UserTests
     {
         [Fact]
+        public void ChangeEmail_ShouldDoNothing_WhenEmailIsTheSame()
+        {
+            // Arrange
+            var initialEmail = "same@email.com";
+            var user = new User("testuser", initialEmail, "password123");
+
+            // Act
+            user.ChangeEmail(initialEmail);
+
+            // Assert
+            user.Email.Should().Be(initialEmail);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("email-invalido")]
+        public void ChangeEmail_ShouldThrowArgumentException_WhenEmailIsInvalid(string invalidEmail)
+        {
+            // Arrange
+            var user = new User("testuser", "initial@email.com", "password123");
+
+            // Act
+            var act = () => user.ChangeEmail(invalidEmail);
+
+            // Assert
+            act.Should().Throw<ArgumentException>();
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void Constructor_ShouldThrowArgumentException_WhenGivenNullOrWhitespacePassword(string invalidPassword)
+        {
+            // Act
+            var act = () => new User("testuser", "test@email.com", invalidPassword);
+
+            // Assert
+            act.Should().Throw<ArgumentException>();
+        }
+
+        [Fact]
         public void VerifyPassword_ShouldReturnFalse_WhenGivenIncorrectPassword()
         {
             // Arrange
@@ -16,19 +60,6 @@ namespace SkillLearning.Tests.UnitTests.Domain
 
             // Assert
             result.Should().BeFalse();
-        }
-
-        [Fact]
-        public void VerifyPassword_ShouldReturnTrue_WhenGivenCorrectPassword()
-        {
-            // Arrange
-            var user = new User("testuser", "test@email.com", "correctPassword123");
-
-            // Act
-            var result = user.VerifyPassword("correctPassword123");
-
-            // Assert
-            result.Should().BeTrue();
         }
 
         [Theory]
@@ -47,17 +78,17 @@ namespace SkillLearning.Tests.UnitTests.Domain
             result.Should().BeFalse();
         }
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData(" ")]
-        public void Constructor_ShouldThrowArgumentException_WhenGivenNullOrWhitespacePassword(string invalidPassword)
+        [Fact]
+        public void VerifyPassword_ShouldReturnTrue_WhenGivenCorrectPassword()
         {
+            // Arrange
+            var user = new User("testuser", "test@email.com", "correctPassword123");
+
             // Act
-            var act = () => new User("testuser", "test@email.com", invalidPassword);
+            var result = user.VerifyPassword("correctPassword123");
 
             // Assert
-            act.Should().Throw<ArgumentException>();
+            result.Should().BeTrue();
         }
     }
 }

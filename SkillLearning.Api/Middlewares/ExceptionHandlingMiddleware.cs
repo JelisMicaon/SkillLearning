@@ -52,6 +52,24 @@ namespace SkillLearning.Api.Middlewares
                 });
                 await context.Response.WriteAsync(json);
             }
+            catch (ArgumentException argEx)
+            {
+                _logger.LogWarning(argEx, "Ocorreu um erro de argumento/dado inválido: {Message}", argEx.Message);
+
+                context.Response.ContentType = "application/problem+json";
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+
+                var problemDetails = new ProblemDetails
+                {
+                    Status = (int)HttpStatusCode.BadRequest,
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    Title = "Requisição inválida.",
+                    Detail = argEx.Message
+                };
+
+                var json = JsonSerializer.Serialize(problemDetails, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                await context.Response.WriteAsync(json);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ocorreu uma exceção inesperada: {Message}", ex.Message);
