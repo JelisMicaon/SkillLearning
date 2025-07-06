@@ -13,15 +13,18 @@ namespace SkillLearning.Application.Features.Auth.Commands
         private readonly ICacheService _cacheService;
         private readonly IEventPublisher _eventPublisher;
         private readonly IUserRepository _userRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
         public RegisterUserCommandHandler(
             IUserRepository userRepository,
             IEventPublisher eventPublisher,
-            ICacheService cacheService)
+            ICacheService cacheService,
+            IUnitOfWork unitOfWork)
         {
             _userRepository = userRepository;
             _eventPublisher = eventPublisher;
             _cacheService = cacheService;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
@@ -32,7 +35,7 @@ namespace SkillLearning.Application.Features.Auth.Commands
 
             var user = new User(request.Username, request.Email, request.Password);
 
-            await _userRepository.AddUserAsync(user);
+            _userRepository.AddUser(user);
 
             var userDto = new UserDto(user.Id, user.Username, user.Email, user.Role);
 
@@ -46,6 +49,8 @@ namespace SkillLearning.Application.Features.Auth.Commands
 
             var userRegisteredEvent = new UserRegisteredEvent(user.Id, user.Username, user.Email, user.CreatedAt);
             await _eventPublisher.PublishAsync(userRegisteredEvent);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Ok();
         }

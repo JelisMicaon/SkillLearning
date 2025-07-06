@@ -4,14 +4,14 @@ namespace SkillLearning.Application.Common.Interfaces
 {
     public interface IUserRepository
     {
-        Task AddUserAsync(User user);
+        void AddUser(User user);
 
         Task<bool> DoesUserExistAsync(string username, string email);
 
         Task<User?> GetUserByIdAsync(Guid userId);
 
-        Task<User?> GetUserByUsernameAsync(string username);
+        void AddRefreshToken(RefreshToken refreshToken);
 
-        Task UpdateUserAsync(User user);
+        Task<User?> GetUserByUsernameAsync(string username);
     }
 }

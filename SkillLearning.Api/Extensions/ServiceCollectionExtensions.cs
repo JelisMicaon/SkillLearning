@@ -46,6 +46,7 @@ namespace SkillLearning.Api.Extensions
                 var interceptor = sp.GetRequiredService<QueryPerformanceInterceptor>();
                 options.AddInterceptors(interceptor);
             });
+            services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
 
             // 5. CQRS, Validation
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));

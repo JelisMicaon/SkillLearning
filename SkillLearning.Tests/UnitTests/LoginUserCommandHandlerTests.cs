@@ -16,6 +16,7 @@ namespace SkillLearning.Tests.UnitTests
     public class LoginUserCommandHandlerTests
     {
         private readonly Mock<IAuthService> _authServiceMock;
+        private readonly Mock<IUnitOfWork> _iUnitOfWorkMock;
         private readonly Mock<IEventPublisher> _eventPublisherMock;
         private readonly LoginUserCommandHandler _handler;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
@@ -26,6 +27,7 @@ namespace SkillLearning.Tests.UnitTests
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _authServiceMock = new Mock<IAuthService>();
+            _iUnitOfWorkMock = new Mock<IUnitOfWork>();
             _eventPublisherMock = new Mock<IEventPublisher>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             _jwtSettingsOptionsMock = new Mock<IOptions<JwtSettings>>();
@@ -38,7 +40,8 @@ namespace SkillLearning.Tests.UnitTests
                 _authServiceMock.Object,
                 _jwtSettingsOptionsMock.Object,
                 _eventPublisherMock.Object,
-                _httpContextAccessorMock.Object
+                _httpContextAccessorMock.Object,
+                _iUnitOfWorkMock.Object
             );
         }
 
@@ -74,7 +77,7 @@ namespace SkillLearning.Tests.UnitTests
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Value.Should().NotBeNull();
-            result.Value.Token.Should().Be(expectedToken);
+            result.Value.AccessToken.Should().Be(expectedToken);
             _eventPublisherMock.Verify(p => p.PublishAsync(It.IsAny<UserLoginEvent>(), null), Times.Once);
         }
 

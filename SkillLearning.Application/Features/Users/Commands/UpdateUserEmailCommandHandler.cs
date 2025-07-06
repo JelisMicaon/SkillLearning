@@ -9,11 +9,13 @@ namespace SkillLearning.Application.Features.Users.Commands
     {
         private readonly ICacheService _cacheService;
         private readonly IUserRepository _userRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public UpdateUserEmailCommandHandler(IUserRepository userRepository, ICacheService cacheService)
+        public UpdateUserEmailCommandHandler(IUserRepository userRepository, ICacheService cacheService, IUnitOfWork unitOfWork)
         {
             _userRepository = userRepository;
             _cacheService = cacheService;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result> Handle(UpdateUserEmailCommand request, CancellationToken cancellationToken)
@@ -34,7 +36,7 @@ namespace SkillLearning.Application.Features.Users.Commands
                 return Result.Fail(new ValidationError(cleanErrorMessage));
             }
 
-            await _userRepository.UpdateUserAsync(user);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             await _cacheService.RemoveAsync($"user:{user.Id}");
             await _cacheService.RemoveAsync($"username:{user.Username}");
