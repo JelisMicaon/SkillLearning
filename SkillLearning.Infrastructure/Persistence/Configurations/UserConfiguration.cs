@@ -17,6 +17,9 @@ namespace SkillLearning.Infrastructure.Persistence.Configurations
             entity.Property(e => e.PasswordHash).IsRequired();
             entity.Property(e => e.Role).IsRequired().HasConversion<string>();
 
+            var navigation = entity.Metadata.FindNavigation(nameof(User.RefreshTokens));
+            navigation?.SetPropertyAccessMode(PropertyAccessMode.Field);
+
             var adminUser = new User(
                 id: Guid.Parse("c9d784a1-0b2a-4a2b-8a8f-2b0e7a1d4c3f"),
                 username: "admin",

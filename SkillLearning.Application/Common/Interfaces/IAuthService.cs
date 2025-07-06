@@ -7,6 +7,8 @@ namespace SkillLearning.Application.Common.Interfaces
     {
         string GenerateJwtToken(IEnumerable<Claim> claims, string issuer);
 
+        ClaimsPrincipal? GetPrincipalFromExpiredToken(string token);
+
         Task<List<Claim>> GetUserClaims(UserDto user);
     }
 }

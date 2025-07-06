@@ -7,6 +7,8 @@ namespace SkillLearning.Domain.Entities
 {
     public class User : EntityBase
     {
+        private readonly List<RefreshToken> _refreshTokens = new();
+
         public User(string username, string email, string plainTextPassword)
         {
             Username = username;
@@ -30,9 +32,20 @@ namespace SkillLearning.Domain.Entities
         { }
 
         public string Email { get; private set; } = string.Empty;
+
         public string PasswordHash { get; private set; } = string.Empty;
+
+        public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
+
         public UserRole Role { get; private set; } = UserRole.User;
+
         public string Username { get; private set; } = string.Empty;
+
+        public void AddRefreshToken(RefreshToken refreshToken)
+        {
+            _refreshTokens.RemoveAll(t => !t.IsActive);
+            _refreshTokens.Add(refreshToken);
+        }
 
         public void ChangeEmail(string newEmail)
         {
@@ -55,6 +68,9 @@ namespace SkillLearning.Domain.Entities
 
             Email = normalizedEmail;
         }
+
+        public RefreshToken? GetActiveRefreshToken()
+                    => _refreshTokens.FirstOrDefault(t => t.IsActive);
 
         public bool VerifyPassword(string plainTextPassword)
         {
