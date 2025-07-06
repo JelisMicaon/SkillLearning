@@ -18,19 +18,22 @@ namespace SkillLearning.Application.Features.Auth.Commands
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JwtSettings _jwtSettings;
         private readonly IUserRepository _userRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
         public LoginUserCommandHandler(
             IUserRepository userRepository,
             IAuthService authService,
             IOptions<JwtSettings> jwtSettingsOptions,
             IEventPublisher eventPublisher,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IUnitOfWork unitOfWork)
         {
             _userRepository = userRepository;
             _authService = authService;
             _jwtSettings = jwtSettingsOptions.Value;
             _eventPublisher = eventPublisher;
             _httpContextAccessor = httpContextAccessor;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<AuthResultDto>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
@@ -46,12 +49,14 @@ namespace SkillLearning.Application.Features.Auth.Commands
 
             var refreshToken = new RefreshToken(TimeSpan.FromDays(7));
             user.AddRefreshToken(refreshToken);
-            await _userRepository.UpdateUserAsync(user);
+            _userRepository.AddRefreshToken(refreshToken);
 
             var ipAddress = _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "Unknown";
             var userAgent = _httpContextAccessor.HttpContext?.Request?.Headers["User-Agent"].ToString() ?? "Unknown";
             var userLoginEvent = new UserLoginEvent(user.Id, user.Username, user.Email, DateTime.UtcNow, ipAddress, userAgent);
             await _eventPublisher.PublishAsync(userLoginEvent);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var authResult = new AuthResultDto(accessToken, refreshToken.Token);
             return Result.Ok(authResult);

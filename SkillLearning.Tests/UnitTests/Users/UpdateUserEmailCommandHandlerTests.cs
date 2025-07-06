@@ -13,12 +13,14 @@ namespace SkillLearning.Tests.UnitTests.Users
         private readonly Mock<ICacheService> _cacheServiceMock;
         private readonly UpdateUserEmailCommandHandler _handler;
         private readonly Mock<IUserRepository> _userRepositoryMock;
+        private readonly Mock<IUnitOfWork> _iUnitOfWorkMock;
 
         public UpdateUserEmailCommandHandlerTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _cacheServiceMock = new Mock<ICacheService>();
-            _handler = new UpdateUserEmailCommandHandler(_userRepositoryMock.Object, _cacheServiceMock.Object);
+            _iUnitOfWorkMock = new Mock<IUnitOfWork>();
+            _handler = new UpdateUserEmailCommandHandler(_userRepositoryMock.Object, _cacheServiceMock.Object, _iUnitOfWorkMock.Object);
         }
 
         [Fact]
@@ -54,7 +56,7 @@ namespace SkillLearning.Tests.UnitTests.Users
             // Assert
             result.IsFailed.Should().BeTrue();
             result.HasError<ValidationError>().Should().BeTrue();
-            _userRepositoryMock.Verify(r => r.UpdateUserAsync(It.IsAny<User>()), Times.Never);
+            _iUnitOfWorkMock.Verify(r => r.SaveChangesAsync(CancellationToken.None), Times.Never);
         }
 
         [Fact]
@@ -72,7 +74,7 @@ namespace SkillLearning.Tests.UnitTests.Users
 
             // Assert
             result.IsSuccess.Should().BeTrue();
-            _userRepositoryMock.Verify(r => r.UpdateUserAsync(It.Is<User>(u => u.Email == command.NewEmail)), Times.Once);
+            _iUnitOfWorkMock.Verify(r => r.SaveChangesAsync(CancellationToken.None), Times.Once);
             _cacheServiceMock.Verify(c => c.RemoveAsync($"user:{userId}"), Times.Once);
             _cacheServiceMock.Verify(c => c.RemoveAsync("email:old.email@test.com"), Times.Once);
         }

@@ -12,22 +12,22 @@ namespace SkillLearning.Application.Features.Auth.Commands
     {
         private readonly IUserRepository _userRepository;
         private readonly IAuthService _authService;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public RefreshTokenCommandHandler(IUserRepository userRepository, IAuthService authService)
+        public RefreshTokenCommandHandler(IUserRepository userRepository, IAuthService authService, IUnitOfWork unitOfWork)
         {
             _userRepository = userRepository;
             _authService = authService;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<AuthResultDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
             var principal = _authService.GetPrincipalFromExpiredToken(request.AccessToken);
-            if (principal?.Identity?.Name is null)
-                return Result.Fail(new AuthenticationError("Token de acesso inválido ou expirado."));
-
             var userIdString = principal?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (!Guid.TryParse(userIdString, out var userId))
-                return Result.Fail(new AuthenticationError("Token com ID de usuário malformado."));
+
+            if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
+                return Result.Fail(new AuthenticationError("Token de acesso inválido ou malformado."));
 
             var user = await _userRepository.GetUserByIdAsync(userId);
             if (user == null)
@@ -46,7 +46,9 @@ namespace SkillLearning.Application.Features.Auth.Commands
             var newRefreshToken = new RefreshToken(TimeSpan.FromDays(7));
             user.AddRefreshToken(newRefreshToken);
 
-            await _userRepository.UpdateUserAsync(user);
+            _userRepository.AddRefreshToken(newRefreshToken);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var authResult = new AuthResultDto(newAccessToken, newRefreshToken.Token);
             return Result.Ok(authResult);

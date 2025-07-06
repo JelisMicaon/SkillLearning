@@ -19,6 +19,26 @@ namespace SkillLearning.Tests.UnitTests.Domain
             user.Email.Should().Be(initialEmail);
         }
 
+        [Fact]
+        public void GetActiveRefreshToken_ShouldReturnActiveToken_WhenOneExists()
+        {
+            // Arrange
+            var user = new User("test", "test@test.com", "pass");
+            var revokedToken = new RefreshToken(TimeSpan.FromDays(1));
+            revokedToken.Revoke();
+            var activeToken = new RefreshToken(TimeSpan.FromDays(1));
+
+            user.AddRefreshToken(revokedToken);
+            user.AddRefreshToken(activeToken);
+
+            // Act
+            var result = user.GetActiveRefreshToken();
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().Be(activeToken);
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("")]

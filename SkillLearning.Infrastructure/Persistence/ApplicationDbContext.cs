@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Domain.Entities;
 using SkillLearning.Infrastructure.Persistence.Configurations;
 
 namespace SkillLearning.Infrastructure.Persistence
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : DbContext, IUnitOfWork
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {

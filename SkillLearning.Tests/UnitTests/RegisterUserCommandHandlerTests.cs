@@ -2,7 +2,6 @@
 using Moq;
 using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Application.Features.Auth.Commands;
-using SkillLearning.Domain.Entities;
 using SkillLearning.Domain.Events;
 
 namespace SkillLearning.Tests.UnitTests
@@ -13,17 +12,20 @@ namespace SkillLearning.Tests.UnitTests
         private readonly Mock<IEventPublisher> _eventPublisherMock;
         private readonly RegisterUserCommandHandler _handler;
         private readonly Mock<IUserRepository> _userRepositoryMock;
+        private readonly Mock<IUnitOfWork> _iUnitOfWorkMock;
 
         public RegisterUserCommandHandlerTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _eventPublisherMock = new Mock<IEventPublisher>();
             _cacheServiceMock = new Mock<ICacheService>();
+            _iUnitOfWorkMock = new Mock<IUnitOfWork>();
 
             _handler = new RegisterUserCommandHandler(
                 _userRepositoryMock.Object,
                 _eventPublisherMock.Object,
-                _cacheServiceMock.Object
+                _cacheServiceMock.Object,
+                _iUnitOfWorkMock.Object
             );
         }
 
@@ -44,7 +46,7 @@ namespace SkillLearning.Tests.UnitTests
             result.IsFailed.Should().BeTrue();
             result.HasError(e => e.Message == "O nome de usuário ou e-mail já está em uso.").Should().BeTrue();
 
-            _userRepositoryMock.Verify(r => r.AddUserAsync(It.IsAny<User>()), Times.Never);
+            _iUnitOfWorkMock.Verify(r => r.SaveChangesAsync(CancellationToken.None), Times.Never);
         }
 
         [Fact]
@@ -63,7 +65,7 @@ namespace SkillLearning.Tests.UnitTests
             // Assert
             result.IsSuccess.Should().BeTrue();
 
-            _userRepositoryMock.Verify(r => r.AddUserAsync(It.Is<User>(u => u.Username == command.Username)), Times.Once);
+            _iUnitOfWorkMock.Verify(r => r.SaveChangesAsync(CancellationToken.None), Times.Once);
             _eventPublisherMock.Verify(p => p.PublishAsync(It.IsAny<UserRegisteredEvent>(), null), Times.Once);
             _cacheServiceMock.Verify(c => c.SetAsync(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<TimeSpan?>()), Times.Exactly(3));
         }
