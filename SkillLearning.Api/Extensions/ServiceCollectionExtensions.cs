@@ -37,16 +37,29 @@ namespace SkillLearning.Api.Extensions
             services.AddSingleton<QueryPerformanceInterceptor>();
 
             // 4. DBContext com Interceptor
-            var conn = configuration.GetConnectionString("Default") ?? throw new InvalidOperationException("Connection string not configured.");
+            var writeConn = configuration.GetConnectionString("Default") ?? throw new InvalidOperationException("Connection string 'Default' não configurada.");
+            var readConn = configuration.GetConnectionString("ReadOnly") ?? throw new InvalidOperationException("Connection string 'ReadOnly' não configurada.");
+
             services.AddDbContext<ApplicationDbContext>((sp, options) =>
             {
-                options.UseNpgsql(conn, npgsql =>
+                options.UseNpgsql(writeConn, npgsql =>
                     npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.GetName().Name));
 
                 var interceptor = sp.GetRequiredService<QueryPerformanceInterceptor>();
                 options.AddInterceptors(interceptor);
             });
             services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
+
+            services.AddDbContext<IReadDbContext, ApplicationDbContext>((sp, options) =>
+            {
+                options.UseNpgsql(readConn, npgsql =>
+                    npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.GetName().Name));
+
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+
+                var interceptor = sp.GetRequiredService<QueryPerformanceInterceptor>();
+                options.AddInterceptors(interceptor);
+            });
 
             // 5. CQRS, Validation
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));

@@ -8,19 +8,69 @@ using System.Data.Common;
 
 namespace SkillLearning.Infrastructure.Persistence
 {
-    public class QueryPerformanceInterceptor : DbCommandInterceptor
+    public class QueryPerformanceInterceptor(
+        ILogger<QueryPerformanceInterceptor> logger,
+        IHttpContextAccessor httpContextAccessor,
+        ConcurrentDictionary<DbCommand, Subsegment> subsegments) : DbCommandInterceptor
     {
-        private readonly ILogger<QueryPerformanceInterceptor> _logger;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ConcurrentDictionary<DbCommand, Subsegment> _subsegments = new();
-
-        public QueryPerformanceInterceptor(ILogger<QueryPerformanceInterceptor> logger, IHttpContextAccessor httpContextAccessor)
+        public override void CommandFailed(DbCommand command, CommandErrorEventData eventData)
         {
-            _logger = logger;
-            _httpContextAccessor = httpContextAccessor;
+            EndSubsegment(command, eventData.Exception);
+            base.CommandFailed(command, eventData);
         }
 
-        // SELECT
+        public override Task CommandFailedAsync(DbCommand command, CommandErrorEventData eventData, CancellationToken cancellationToken = default)
+        {
+            EndSubsegment(command, eventData.Exception);
+            return base.CommandFailedAsync(command, eventData, cancellationToken);
+        }
+
+        public override int NonQueryExecuted(
+                    DbCommand command, CommandExecutedEventData eventData, int result)
+        {
+            EndSubsegment(command);
+            LogIfSlow(command, eventData.Duration);
+            return base.NonQueryExecuted(command, eventData, result);
+        }
+
+        public override ValueTask<int> NonQueryExecutedAsync(
+                    DbCommand command, CommandExecutedEventData eventData, int result, CancellationToken cancellationToken = default)
+        {
+            EndSubsegment(command);
+            LogIfSlow(command, eventData.Duration);
+            return base.NonQueryExecutedAsync(command, eventData, result, cancellationToken);
+        }
+
+        public override InterceptionResult<int> NonQueryExecuting(
+            DbCommand command, CommandEventData eventData, InterceptionResult<int> result)
+        {
+            StartSubsegment(command);
+            return base.NonQueryExecuting(command, eventData, result);
+        }
+
+        public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(
+                    DbCommand command, CommandEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+        {
+            StartSubsegment(command);
+            return base.NonQueryExecutingAsync(command, eventData, result, cancellationToken);
+        }
+
+        public override DbDataReader ReaderExecuted(
+                    DbCommand command, CommandExecutedEventData eventData, DbDataReader result)
+        {
+            EndSubsegment(command);
+            LogIfSlow(command, eventData.Duration);
+            return base.ReaderExecuted(command, eventData, result);
+        }
+
+        public override ValueTask<DbDataReader> ReaderExecutedAsync(
+                    DbCommand command, CommandExecutedEventData eventData, DbDataReader result, CancellationToken cancellationToken = default)
+        {
+            EndSubsegment(command);
+            LogIfSlow(command, eventData.Duration);
+            return base.ReaderExecutedAsync(command, eventData, result, cancellationToken);
+        }
+
         public override InterceptionResult<DbDataReader> ReaderExecuting(
             DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result)
         {
@@ -35,54 +85,21 @@ namespace SkillLearning.Infrastructure.Persistence
             return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
         }
 
-        public override DbDataReader ReaderExecuted(
-            DbCommand command, CommandExecutedEventData eventData, DbDataReader result)
+        public override object? ScalarExecuted(DbCommand command, CommandExecutedEventData eventData, object? result)
         {
             EndSubsegment(command);
             LogIfSlow(command, eventData.Duration);
-            return base.ReaderExecuted(command, eventData, result);
+            return base.ScalarExecuted(command, eventData, result);
         }
 
-        public override ValueTask<DbDataReader> ReaderExecutedAsync(
-            DbCommand command, CommandExecutedEventData eventData, DbDataReader result, CancellationToken cancellationToken = default)
+        public override ValueTask<object?> ScalarExecutedAsync(
+                    DbCommand command, CommandExecutedEventData eventData, object? result, CancellationToken cancellationToken = default)
         {
             EndSubsegment(command);
             LogIfSlow(command, eventData.Duration);
-            return base.ReaderExecutedAsync(command, eventData, result, cancellationToken);
+            return base.ScalarExecutedAsync(command, eventData, result, cancellationToken);
         }
 
-        // NON QUERY (INSERT/UPDATE/DELETE)
-        public override InterceptionResult<int> NonQueryExecuting(
-            DbCommand command, CommandEventData eventData, InterceptionResult<int> result)
-        {
-            StartSubsegment(command);
-            return base.NonQueryExecuting(command, eventData, result);
-        }
-
-        public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(
-            DbCommand command, CommandEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
-        {
-            StartSubsegment(command);
-            return base.NonQueryExecutingAsync(command, eventData, result, cancellationToken);
-        }
-
-        public override int NonQueryExecuted(
-            DbCommand command, CommandExecutedEventData eventData, int result)
-        {
-            EndSubsegment(command);
-            LogIfSlow(command, eventData.Duration);
-            return base.NonQueryExecuted(command, eventData, result);
-        }
-
-        public override ValueTask<int> NonQueryExecutedAsync(
-            DbCommand command, CommandExecutedEventData eventData, int result, CancellationToken cancellationToken = default)
-        {
-            EndSubsegment(command);
-            LogIfSlow(command, eventData.Duration);
-            return base.NonQueryExecutedAsync(command, eventData, result, cancellationToken);
-        }
-
-        // SCALAR
         public override InterceptionResult<object> ScalarExecuting(DbCommand command, CommandEventData eventData, InterceptionResult<object> result)
         {
             StartSubsegment(command);
@@ -96,35 +113,25 @@ namespace SkillLearning.Infrastructure.Persistence
             return base.ScalarExecutingAsync(command, eventData, result, cancellationToken);
         }
 
-        public override object? ScalarExecuted(DbCommand command, CommandExecutedEventData eventData, object? result)
+        private void EndSubsegment(DbCommand command, Exception? exception = null)
         {
-            EndSubsegment(command);
-            LogIfSlow(command, eventData.Duration);
-            return base.ScalarExecuted(command, eventData, result);
+            if (subsegments.TryRemove(command, out var sub))
+            {
+                if (exception != null)
+                    sub.AddException(exception);
+                AWSXRayRecorder.Instance.EndSubsegment();
+            }
         }
 
-        public override ValueTask<object?> ScalarExecutedAsync(
-            DbCommand command, CommandExecutedEventData eventData, object? result, CancellationToken cancellationToken = default)
+        private void LogIfSlow(DbCommand command, TimeSpan duration)
         {
-            EndSubsegment(command);
-            LogIfSlow(command, eventData.Duration);
-            return base.ScalarExecutedAsync(command, eventData, result, cancellationToken);
+            if (duration.TotalMilliseconds > 100)
+            {
+                logger.LogWarning("Slow DB Command ({Duration}ms): {CommandText}",
+                    duration.TotalMilliseconds, command.CommandText);
+            }
         }
 
-        // FAILURE HANDLING (todas as execuções)
-        public override void CommandFailed(DbCommand command, CommandErrorEventData eventData)
-        {
-            EndSubsegment(command, eventData.Exception);
-            base.CommandFailed(command, eventData);
-        }
-
-        public override Task CommandFailedAsync(DbCommand command, CommandErrorEventData eventData, CancellationToken cancellationToken = default)
-        {
-            EndSubsegment(command, eventData.Exception);
-            return base.CommandFailedAsync(command, eventData, cancellationToken);
-        }
-
-        // SUBSEGMENT MGMT
         private void StartSubsegment(DbCommand command)
         {
             if (!AWSXRayRecorder.Instance.TraceContext.IsEntityPresent())
@@ -142,33 +149,14 @@ namespace SkillLearning.Infrastructure.Persistence
                 sub.AddMetadata("db.statement", commandText);
                 sub.AddMetadata("db.type", "postgres");
 
-                var httpContext = _httpContextAccessor.HttpContext;
+                var httpContext = httpContextAccessor.HttpContext;
                 if (httpContext != null)
                 {
                     var userId = httpContext.User?.FindFirst("sub")?.Value ?? "anonymous";
                     sub.AddMetadata("user.id", userId);
                 }
 
-                _subsegments[command] = sub;
-            }
-        }
-
-        private void EndSubsegment(DbCommand command, Exception? exception = null)
-        {
-            if (_subsegments.TryRemove(command, out var sub))
-            {
-                if (exception != null)
-                    sub.AddException(exception);
-                AWSXRayRecorder.Instance.EndSubsegment();
-            }
-        }
-
-        private void LogIfSlow(DbCommand command, TimeSpan duration)
-        {
-            if (duration.TotalMilliseconds > 100)
-            {
-                _logger.LogWarning("Slow DB Command ({Duration}ms): {CommandText}",
-                    duration.TotalMilliseconds, command.CommandText);
+                subsegments[command] = sub;
             }
         }
     }

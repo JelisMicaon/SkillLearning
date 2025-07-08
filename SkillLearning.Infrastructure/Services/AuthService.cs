@@ -9,14 +9,9 @@ using System.Text;
 
 namespace SkillLearning.Infrastructure.Services
 {
-    public class AuthService : IAuthService
+    public class AuthService(IConfiguration configuration) : IAuthService
     {
-        private readonly JwtSettings _jwtSettings;
-
-        public AuthService(IConfiguration configuration)
-        {
-            _jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>() ?? throw new ArgumentNullException(nameof(configuration), "JwtSettings não configurado.");
-        }
+        private readonly JwtSettings _jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>() ?? throw new ArgumentNullException(nameof(configuration), "JwtSettings não configurado.");
 
         public string GenerateJwtToken(IEnumerable<Claim> claims, string issuer)
         {

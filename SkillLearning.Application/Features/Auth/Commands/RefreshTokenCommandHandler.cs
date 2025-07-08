@@ -8,28 +8,17 @@ using System.Security.Claims;
 
 namespace SkillLearning.Application.Features.Auth.Commands
 {
-    public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, Result<AuthResultDto>>
+    public class RefreshTokenCommandHandler(IUserRepository userRepository, IAuthService authService, IUnitOfWork unitOfWork) : IRequestHandler<RefreshTokenCommand, Result<AuthResultDto>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IAuthService _authService;
-        private readonly IUnitOfWork _unitOfWork;
-
-        public RefreshTokenCommandHandler(IUserRepository userRepository, IAuthService authService, IUnitOfWork unitOfWork)
-        {
-            _userRepository = userRepository;
-            _authService = authService;
-            _unitOfWork = unitOfWork;
-        }
-
         public async Task<Result<AuthResultDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
-            var principal = _authService.GetPrincipalFromExpiredToken(request.AccessToken);
+            var principal = authService.GetPrincipalFromExpiredToken(request.AccessToken);
             var userIdString = principal?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
                 return Result.Fail(new AuthenticationError("Token de acesso inválido ou malformado."));
 
-            var user = await _userRepository.GetUserByIdAsync(userId);
+            var user = await userRepository.GetUserByIdAsync(userId);
             if (user == null)
                 return Result.Fail(new AuthenticationError("Usuário associado ao token não encontrado."));
 
@@ -40,15 +29,15 @@ namespace SkillLearning.Application.Features.Auth.Commands
             oldRefreshToken.Revoke();
 
             var userDto = new UserDto(user.Id, user.Username, user.Email, user.Role);
-            var claims = await _authService.GetUserClaims(userDto);
-            var newAccessToken = _authService.GenerateJwtToken(claims, "SkillLearningApi");
+            var claims = await authService.GetUserClaims(userDto);
+            var newAccessToken = authService.GenerateJwtToken(claims, "SkillLearningApi");
 
             var newRefreshToken = new RefreshToken(TimeSpan.FromDays(7));
             user.AddRefreshToken(newRefreshToken);
 
-            _userRepository.AddRefreshToken(newRefreshToken);
+            userRepository.AddRefreshToken(newRefreshToken);
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             var authResult = new AuthResultDto(newAccessToken, newRefreshToken.Token);
             return Result.Ok(authResult);

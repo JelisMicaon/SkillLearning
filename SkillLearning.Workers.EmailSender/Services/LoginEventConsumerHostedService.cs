@@ -5,26 +5,17 @@ using SkillLearning.Domain.Events;
 
 namespace SkillLearning.Workers.EmailSender.Services
 {
-    public class LoginEventConsumerHostedService : IHostedService
+    public class LoginEventConsumerHostedService(
+        IKafkaConsumerService<Null, UserLoginEvent> kafkaConsumerService,
+        LoginNotificationEventHandler loginNotificationEventHandler) : IHostedService
     {
-        private readonly IKafkaConsumerService<Null, UserLoginEvent> _kafkaConsumerService;
-        private readonly LoginNotificationEventHandler _loginNotificationEventHandler;
-
-        public LoginEventConsumerHostedService(
-            IKafkaConsumerService<Null, UserLoginEvent> kafkaConsumerService,
-            LoginNotificationEventHandler loginNotificationEventHandler)
-        {
-            _kafkaConsumerService = kafkaConsumerService;
-            _loginNotificationEventHandler = loginNotificationEventHandler;
-        }
-
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _ = Task.Run(async () =>
             {
-                await _kafkaConsumerService.StartConsuming(
+                await kafkaConsumerService.StartConsuming(
                     "userLoginEvent",
-                    async (loginEvent) => await _loginNotificationEventHandler.HandleLoginEventAsync(loginEvent),
+                    async (loginEvent) => await loginNotificationEventHandler.HandleLoginEventAsync(loginEvent),
                     cancellationToken);
             }, cancellationToken);
 
@@ -33,7 +24,7 @@ namespace SkillLearning.Workers.EmailSender.Services
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _kafkaConsumerService.StopConsuming();
+            kafkaConsumerService.StopConsuming();
             return Task.CompletedTask;
         }
     }

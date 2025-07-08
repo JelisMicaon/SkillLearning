@@ -5,12 +5,8 @@ using SkillLearning.Infrastructure.Persistence.Configurations;
 
 namespace SkillLearning.Infrastructure.Persistence
 {
-    public class ApplicationDbContext : DbContext, IUnitOfWork
+    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options), IUnitOfWork, IReadDbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-        {
-        }
-
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<User> Users { get; set; }
 

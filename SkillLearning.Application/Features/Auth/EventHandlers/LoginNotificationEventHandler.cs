@@ -3,15 +3,8 @@ using SkillLearning.Domain.Events;
 
 namespace SkillLearning.Application.Features.Auth.EventHandlers
 {
-    public class LoginNotificationEventHandler
+    public class LoginNotificationEventHandler(IEmailSender emailSender)
     {
-        private readonly IEmailSender _emailSender;
-
-        public LoginNotificationEventHandler(IEmailSender emailSender)
-        {
-            _emailSender = emailSender;
-        }
-
         public async Task HandleLoginEventAsync(UserLoginEvent loginEvent)
         {
             var subject = "Notificação de Login em sua Conta SkillLearning";
@@ -30,7 +23,7 @@ namespace SkillLearning.Application.Features.Auth.EventHandlers
                 <p>A Equipe SkillLearning</p>
             ";
 
-            await _emailSender.SendEmailAsync(loginEvent.Email, subject, htmlBody);
+            await emailSender.SendEmailAsync(loginEvent.Email, subject, htmlBody);
         }
     }
 }
