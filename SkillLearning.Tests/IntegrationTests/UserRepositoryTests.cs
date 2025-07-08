@@ -15,8 +15,25 @@ namespace SkillLearning.Tests.IntegrationTests
             .WithPassword("test_pass")
             .Build();
 
-        private ApplicationDbContext _context = null!;
+        private ApplicationWriteDbContext _context = null!;
         private UserRepository _userRepository = null!;
+
+        public async Task InitializeAsync()
+        {
+            await _dbContainer.StartAsync();
+
+            var options = new DbContextOptionsBuilder<ApplicationWriteDbContext>()
+                .UseNpgsql(_dbContainer.GetConnectionString())
+                .Options;
+
+            _context = new ApplicationWriteDbContext(options);
+            await _context.Database.EnsureCreatedAsync();
+
+            _userRepository = new UserRepository(_context);
+        }
+
+        public async Task DisposeAsync()
+            => await _dbContainer.StopAsync();
 
         [Fact]
         public async Task AddUser_ShouldSuccessfullyPersistUser_ToDatabase()
@@ -35,16 +52,50 @@ namespace SkillLearning.Tests.IntegrationTests
             userFromDb!.Username.Should().Be("jelis");
         }
 
-        public async Task DisposeAsync()
-            => await _dbContainer.StopAsync();
-
-        public async Task InitializeAsync()
+        [Fact]
+        public async Task GetUserByIdAsync_ShouldReturnCorrectUser_WhenUserExists()
         {
-            await _dbContainer.StartAsync();
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(_dbContainer.GetConnectionString()).Options;
-            _context = new ApplicationDbContext(options);
-            await _context.Database.MigrateAsync();
-            _userRepository = new UserRepository(_context);
+            // Arrange
+            var newUser = new User("test_user_by_id", "byid@test.com", "password");
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _userRepository.GetUserByIdAsync(newUser.Id);
+
+            // Assert
+            result.Should().NotBeNull();
+            result!.Id.Should().Be(newUser.Id);
+            result.Username.Should().Be("test_user_by_id");
+        }
+
+        [Fact]
+        public async Task IsEmailInUseAsync_ShouldReturnTrue_WhenEmailExists()
+        {
+            // Arrange
+            var email = "existing@email.com";
+            var newUser = new User("test_user_email", email, "password");
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _userRepository.IsEmailInUseAsync(email);
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task IsEmailInUseAsync_ShouldReturnFalse_WhenEmailDoesNotExist()
+        {
+            // Arrange
+            var email = "non_existing@email.com";
+
+            // Act
+            var result = await _userRepository.IsEmailInUseAsync(email);
+
+            // Assert
+            result.Should().BeFalse();
         }
     }
 }

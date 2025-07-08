@@ -4,8 +4,11 @@ using SkillLearning.Domain.Entities;
 
 namespace SkillLearning.Infrastructure.Persistence.Repositories
 {
-    public class UserRepository(ApplicationDbContext context) : IUserRepository
+    public class UserRepository(ApplicationWriteDbContext context) : IUserRepository
     {
+        public void AddRefreshToken(RefreshToken refreshToken)
+            => context.RefreshTokens.Add(refreshToken);
+
         public void AddUser(User user)
             => context.Users.Add(user);
 
@@ -18,7 +21,7 @@ namespace SkillLearning.Infrastructure.Persistence.Repositories
         public async Task<User?> GetUserByUsernameAsync(string username)
             => await context.Users.Include(u => u.RefreshTokens).FirstOrDefaultAsync(u => u.Username == username);
 
-        public void AddRefreshToken(RefreshToken refreshToken)
-            => context.RefreshTokens.Add(refreshToken);
+        public async Task<bool> IsEmailInUseAsync(string email)
+            => await context.Users.AsNoTracking().AnyAsync(u => u.Email == email);
     }
 }

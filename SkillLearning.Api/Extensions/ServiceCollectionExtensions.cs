@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Amazon.XRay.Recorder.Core.Internal.Entities;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -10,6 +11,8 @@ using SkillLearning.Application.Features.Auth.Commands;
 using SkillLearning.Infrastructure.Persistence;
 using SkillLearning.Infrastructure.Persistence.Repositories;
 using SkillLearning.Infrastructure.Services;
+using System.Collections.Concurrent;
+using System.Data.Common;
 using System.Text;
 
 namespace SkillLearning.Api.Extensions
@@ -34,32 +37,34 @@ namespace SkillLearning.Api.Extensions
             services.AddSingleton<ICacheService, RedisCacheService>();
 
             // 3. XRay Interceptor
+            services.AddSingleton<ConcurrentDictionary<DbCommand, Subsegment>>();
             services.AddSingleton<QueryPerformanceInterceptor>();
 
             // 4. DBContext com Interceptor
             var writeConn = configuration.GetConnectionString("Default") ?? throw new InvalidOperationException("Connection string 'Default' não configurada.");
             var readConn = configuration.GetConnectionString("ReadOnly") ?? throw new InvalidOperationException("Connection string 'ReadOnly' não configurada.");
 
-            services.AddDbContext<ApplicationDbContext>((sp, options) =>
+            services.AddDbContext<ApplicationWriteDbContext>((sp, options) =>
             {
                 options.UseNpgsql(writeConn, npgsql =>
-                    npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.GetName().Name));
+                    npgsql.MigrationsAssembly(typeof(ApplicationWriteDbContext).Assembly.GetName().Name));
 
                 var interceptor = sp.GetRequiredService<QueryPerformanceInterceptor>();
                 options.AddInterceptors(interceptor);
             });
-            services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
 
-            services.AddDbContext<IReadDbContext, ApplicationDbContext>((sp, options) =>
+            services.AddDbContext<ApplicationReadDbContext>((sp, options) =>
             {
                 options.UseNpgsql(readConn, npgsql =>
-                    npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.GetName().Name));
+                    npgsql.MigrationsAssembly(typeof(ApplicationReadDbContext).Assembly.GetName().Name));
 
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
                 var interceptor = sp.GetRequiredService<QueryPerformanceInterceptor>();
                 options.AddInterceptors(interceptor);
             });
+            services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationWriteDbContext>());
+            services.AddScoped<IReadDbContext>(sp => sp.GetRequiredService<ApplicationReadDbContext>());
 
             // 5. CQRS, Validation
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));

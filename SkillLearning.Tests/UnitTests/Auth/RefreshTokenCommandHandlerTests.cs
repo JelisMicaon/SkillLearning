@@ -1,5 +1,7 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Moq;
+using SkillLearning.Application.Common.Configuration;
 using SkillLearning.Application.Common.Errors;
 using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Application.Common.Models;
@@ -13,16 +15,26 @@ namespace SkillLearning.Tests.UnitTests.Auth
     public class RefreshTokenCommandHandlerTests
     {
         private readonly Mock<IAuthService> _authServiceMock;
-        private readonly RefreshTokenCommandHandler _handler;
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly Mock<IUserRepository> _userRepositoryMock;
+        private readonly Mock<IOptions<JwtSettings>> _jwtSettingsOptionsMock;
+        private readonly RefreshTokenCommandHandler _handler;
 
         public RefreshTokenCommandHandlerTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _authServiceMock = new Mock<IAuthService>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
-            _handler = new RefreshTokenCommandHandler(_userRepositoryMock.Object, _authServiceMock.Object, _unitOfWorkMock.Object);
+            _jwtSettingsOptionsMock = new Mock<IOptions<JwtSettings>>();
+
+            var jwtSettings = new JwtSettings { Issuer = "TestIssuer", Key = "some-test-key-that-is-long-enough" };
+            _jwtSettingsOptionsMock.Setup(o => o.Value).Returns(jwtSettings);
+
+            _handler = new RefreshTokenCommandHandler(
+                _userRepositoryMock.Object,
+                _authServiceMock.Object,
+                _unitOfWorkMock.Object,
+                _jwtSettingsOptionsMock.Object);
         }
 
         [Fact]

@@ -1,5 +1,7 @@
 ﻿using FluentResults;
 using MediatR;
+using Microsoft.Extensions.Options;
+using SkillLearning.Application.Common.Configuration;
 using SkillLearning.Application.Common.Errors;
 using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Application.Common.Models;
@@ -8,7 +10,11 @@ using System.Security.Claims;
 
 namespace SkillLearning.Application.Features.Auth.Commands
 {
-    public class RefreshTokenCommandHandler(IUserRepository userRepository, IAuthService authService, IUnitOfWork unitOfWork) : IRequestHandler<RefreshTokenCommand, Result<AuthResultDto>>
+    public class RefreshTokenCommandHandler(
+        IUserRepository userRepository,
+        IAuthService authService,
+        IUnitOfWork unitOfWork,
+        IOptions<JwtSettings> jwtSettingsOptions) : IRequestHandler<RefreshTokenCommand, Result<AuthResultDto>>
     {
         public async Task<Result<AuthResultDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
@@ -30,12 +36,10 @@ namespace SkillLearning.Application.Features.Auth.Commands
 
             var userDto = new UserDto(user.Id, user.Username, user.Email, user.Role);
             var claims = await authService.GetUserClaims(userDto);
-            var newAccessToken = authService.GenerateJwtToken(claims, "SkillLearningApi");
+            var newAccessToken = authService.GenerateJwtToken(claims, jwtSettingsOptions.Value.Issuer);
 
             var newRefreshToken = new RefreshToken(TimeSpan.FromDays(7));
             user.AddRefreshToken(newRefreshToken);
-
-            userRepository.AddRefreshToken(newRefreshToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
 

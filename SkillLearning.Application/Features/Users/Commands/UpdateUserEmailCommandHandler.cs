@@ -13,6 +13,13 @@ namespace SkillLearning.Application.Features.Users.Commands
             if (user == null)
                 return Result.Fail(new NotFoundError("Usuário não encontrado."));
 
+            if (!user.Email.Equals(request.NewEmail, StringComparison.OrdinalIgnoreCase))
+            {
+                var emailInUse = await userRepository.IsEmailInUseAsync(request.NewEmail);
+                if (emailInUse)
+                    return Result.Fail(new ValidationError("O endereço de e-mail informado já está em uso."));
+            }
+
             var oldEmail = user.Email;
 
             try
