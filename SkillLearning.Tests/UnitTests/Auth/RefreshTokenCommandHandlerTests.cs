@@ -69,7 +69,6 @@ namespace SkillLearning.Tests.UnitTests.Auth
             var command = new RefreshTokenCommand("validAccessToken", "anyRefreshToken");
 
             _authServiceMock.Setup(s => s.GetPrincipalFromExpiredToken(command.AccessToken)).Returns(claimsPrincipal);
-
             _userRepositoryMock.Setup(r => r.GetUserByIdAsync(userId)).ReturnsAsync((User?)null);
 
             // Act

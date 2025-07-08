@@ -18,7 +18,6 @@ namespace SkillLearning.Infrastructure.Services
             {
                 BootstrapServers = kafkaSettings.Value.BootstrapServers,
                 GroupId = $"skilllearning-email-sender-group",
-                AutoOffsetReset = AutoOffsetReset.Earliest,
                 EnableAutoCommit = false,
                 SecurityProtocol = SecurityProtocol.Plaintext
             };
