@@ -1,5 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Configuration;
+using SkillLearning.Application.Common.Models;
+using SkillLearning.Domain.Enums;
 using SkillLearning.Infrastructure.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -32,11 +34,11 @@ namespace SkillLearning.Tests.UnitTests.Services
         {
             // Arrange
             var claims = new List<Claim>
-                {
-                    new(JwtRegisteredClaimNames.Sub, "user-id-123"),
-                    new(JwtRegisteredClaimNames.Name, "Test User"),
-                    new(ClaimTypes.Role, "Admin")
-                };
+            {
+                new(JwtRegisteredClaimNames.Sub, "user-id-123"),
+                new(JwtRegisteredClaimNames.Name, "Test User"),
+                new(ClaimTypes.Role, "Admin")
+            };
             var issuer = "TestIssuer";
 
             // Act
@@ -44,10 +46,8 @@ namespace SkillLearning.Tests.UnitTests.Services
 
             // Assert
             tokenString.Should().NotBeNullOrEmpty();
-
             var handler = new JwtSecurityTokenHandler();
             var decodedToken = handler.ReadJwtToken(tokenString);
-
             decodedToken.Issuer.Should().Be(issuer);
             decodedToken.Audiences.Should().Contain("TestAudience");
             decodedToken.Claims.Should().Contain(c => c.Type == JwtRegisteredClaimNames.Sub && c.Value == "user-id-123");
@@ -55,17 +55,33 @@ namespace SkillLearning.Tests.UnitTests.Services
         }
 
         [Fact]
+        public void GetPrincipalFromExpiredToken_ShouldReturnPrincipal_WhenSignatureIsValid()
+        {
+            // Arrange
+            var tokenString = _authService.GenerateJwtToken(new List<Claim> { new("test", "claim") }, "TestIssuer");
+
+            // Act
+            var principal = _authService.GetPrincipalFromExpiredToken(tokenString);
+
+            // Assert
+            principal.Should().NotBeNull();
+            principal.Claims.Should().Contain(c => c.Type == "test" && c.Value == "claim");
+        }
+
+        [Fact]
         public void GetPrincipalFromExpiredToken_ShouldReturnNull_WhenSignatureIsInvalid()
         {
+            // Arrange
             var wrongConfig = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                        {"Jwt:Key", "ChaveErradaQueNaoVaiFuncionarParaValidacao"},
-                        {"Jwt:Issuer", "TestIssuer"}
+                    { "Jwt:Key", "ESTA_CHAVE_E_DIFERENTE_E_CAUSARA_FALHA_NA_VALIDACAO" },
+                    { "Jwt:Issuer", "TestIssuer" },
                 })
                 .Build();
+
             var wrongAuthService = new AuthService(wrongConfig);
-            var tokenWithInvalidSignature = wrongAuthService.GenerateJwtToken(new List<Claim>(), "TestIssuer");
+            var tokenWithInvalidSignature = wrongAuthService.GenerateJwtToken([], "TestIssuer");
 
             // Act
             var principal = _authService.GetPrincipalFromExpiredToken(tokenWithInvalidSignature);
@@ -75,16 +91,22 @@ namespace SkillLearning.Tests.UnitTests.Services
         }
 
         [Fact]
-        public void GetPrincipalFromExpiredToken_ShouldReturnPrincipal_WhenSignatureIsValid()
+        public async Task GetUserClaims_ShouldReturnCorrectClaims_ForGivenUserDto()
         {
-            var tokenString = _authService.GenerateJwtToken(new List<Claim> { new("test", "claim") }, "TestIssuer");
+            // Arrange
+            var userId = System.Guid.NewGuid();
+            var userDto = new UserDto(userId, "testuser", "test@user.com", UserRole.User);
 
             // Act
-            var principal = _authService.GetPrincipalFromExpiredToken(tokenString);
+            var claims = await _authService.GetUserClaims(userDto);
 
             // Assert
-            principal.Should().NotBeNull();
-            principal.Claims.Should().Contain(c => c.Type == "test" && c.Value == "claim");
+            claims.Should().NotBeNull();
+            claims.Should().HaveCount(4);
+            claims.Should().Contain(c => c.Type == ClaimTypes.NameIdentifier && c.Value == userId.ToString());
+            claims.Should().Contain(c => c.Type == ClaimTypes.Name && c.Value == "testuser");
+            claims.Should().Contain(c => c.Type == ClaimTypes.Email && c.Value == "test@user.com");
+            claims.Should().Contain(c => c.Type == ClaimTypes.Role && c.Value == "User");
         }
     }
 }

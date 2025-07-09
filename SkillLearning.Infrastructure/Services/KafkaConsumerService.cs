@@ -12,15 +12,19 @@ namespace SkillLearning.Infrastructure.Services
         private CancellationTokenSource? _consumeCancellationTokenSource;
         private bool _disposed;
 
-        public KafkaConsumerService(IOptions<KafkaSettings> kafkaSettings)
+        public KafkaConsumerService(IOptions<KafkaSettings> kafkaSettings, Action<ConsumerConfig>? configureOverrides = null)
         {
             var config = new ConsumerConfig
             {
                 BootstrapServers = kafkaSettings.Value.BootstrapServers,
                 GroupId = $"skilllearning-email-sender-group",
+                AutoOffsetReset = AutoOffsetReset.Earliest,
                 EnableAutoCommit = false,
+                ClientId = $"skilllearning-worker-{Guid.NewGuid()}",
                 SecurityProtocol = SecurityProtocol.Plaintext
             };
+
+            configureOverrides?.Invoke(config);
 
             _consumer = new ConsumerBuilder<TKey, string>(config)
                 .SetKeyDeserializer(KafkaConsumerService<TKey, TValue>.CreateKeyDeserializer())
