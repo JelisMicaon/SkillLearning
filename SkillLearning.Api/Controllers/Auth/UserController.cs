@@ -11,20 +11,13 @@ namespace SkillLearning.Api.Controllers.Auth
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class UsersController : ApiControllerBase
+    public class UsersController(IMediator mediator) : ApiControllerBase
     {
-        private readonly IMediator _mediator;
-
-        public UsersController(IMediator mediator)
-        {
-            _mediator = mediator;
-        }
-
         [HttpGet("{username}")]
         public async Task<IActionResult> GetByUsername(string username)
         {
             var query = new GetUserByUsernameQuery(username);
-            var result = await _mediator.Send(query);
+            var result = await mediator.Send(query);
             return HandleResult(result);
         }
 
@@ -32,7 +25,7 @@ namespace SkillLearning.Api.Controllers.Auth
         public async Task<IActionResult> UpdateEmail(Guid id, [FromBody] UpdateEmailRequest request)
         {
             var command = new UpdateUserEmailCommand(id, request.Email);
-            var result = await _mediator.Send(command);
+            var result = await mediator.Send(command);
             return HandleResult(result);
         }
     }

@@ -5,24 +5,20 @@ using SkillLearning.Application.Common.Interfaces;
 
 namespace SkillLearning.Application.Features.Users.Commands
 {
-    public class UpdateUserEmailCommandHandler : IRequestHandler<UpdateUserEmailCommand, Result>
+    public class UpdateUserEmailCommandHandler(IUserRepository userRepository, ICacheService cacheService, IUnitOfWork unitOfWork) : IRequestHandler<UpdateUserEmailCommand, Result>
     {
-        private readonly ICacheService _cacheService;
-        private readonly IUserRepository _userRepository;
-        private readonly IUnitOfWork _unitOfWork;
-
-        public UpdateUserEmailCommandHandler(IUserRepository userRepository, ICacheService cacheService, IUnitOfWork unitOfWork)
-        {
-            _userRepository = userRepository;
-            _cacheService = cacheService;
-            _unitOfWork = unitOfWork;
-        }
-
         public async Task<Result> Handle(UpdateUserEmailCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetUserByIdAsync(request.UserId);
+            var user = await userRepository.GetUserByIdAsync(request.UserId);
             if (user == null)
                 return Result.Fail(new NotFoundError("Usuário não encontrado."));
+
+            if (!user.Email.Equals(request.NewEmail, StringComparison.OrdinalIgnoreCase))
+            {
+                var emailInUse = await userRepository.IsEmailInUseAsync(request.NewEmail);
+                if (emailInUse)
+                    return Result.Fail(new ValidationError("O endereço de e-mail informado já está em uso."));
+            }
 
             var oldEmail = user.Email;
 
@@ -36,12 +32,12 @@ namespace SkillLearning.Application.Features.Users.Commands
                 return Result.Fail(new ValidationError(cleanErrorMessage));
             }
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _cacheService.RemoveAsync($"user:{user.Id}");
-            await _cacheService.RemoveAsync($"username:{user.Username}");
-            await _cacheService.RemoveAsync($"email:{oldEmail}");
-            await _cacheService.RemoveAsync($"email:{request.NewEmail}");
+            await cacheService.RemoveAsync($"user:{user.Id}");
+            await cacheService.RemoveAsync($"username:{user.Username}");
+            await cacheService.RemoveAsync($"email:{oldEmail}");
+            await cacheService.RemoveAsync($"email:{request.NewEmail}");
 
             return Result.Ok();
         }

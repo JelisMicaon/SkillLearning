@@ -11,52 +11,37 @@ using SkillLearning.Domain.Events;
 
 namespace SkillLearning.Application.Features.Auth.Commands
 {
-    public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Result<AuthResultDto>>
+    public class LoginUserCommandHandler(
+        IUserRepository userRepository,
+        IAuthService authService,
+        IOptions<JwtSettings> jwtSettingsOptions,
+        IEventPublisher eventPublisher,
+        IHttpContextAccessor httpContextAccessor,
+        IUnitOfWork unitOfWork) : IRequestHandler<LoginUserCommand, Result<AuthResultDto>>
     {
-        private readonly IAuthService _authService;
-        private readonly IEventPublisher _eventPublisher;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JwtSettings _jwtSettings;
-        private readonly IUserRepository _userRepository;
-        private readonly IUnitOfWork _unitOfWork;
-
-        public LoginUserCommandHandler(
-            IUserRepository userRepository,
-            IAuthService authService,
-            IOptions<JwtSettings> jwtSettingsOptions,
-            IEventPublisher eventPublisher,
-            IHttpContextAccessor httpContextAccessor,
-            IUnitOfWork unitOfWork)
-        {
-            _userRepository = userRepository;
-            _authService = authService;
-            _jwtSettings = jwtSettingsOptions.Value;
-            _eventPublisher = eventPublisher;
-            _httpContextAccessor = httpContextAccessor;
-            _unitOfWork = unitOfWork;
-        }
 
         public async Task<Result<AuthResultDto>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetUserByUsernameAsync(request.Username);
+            var user = await userRepository.GetUserByUsernameAsync(request.Username);
 
             if (user == null || !user.VerifyPassword(request.Password))
                 return Result.Fail(new AuthenticationError("Nome de usuário ou senha inválidos."));
 
             var userDto = new UserDto(user.Id, user.Username, user.Email, user.Role);
-            var claims = await _authService.GetUserClaims(userDto);
-            var accessToken = _authService.GenerateJwtToken(claims, _jwtSettings.Issuer);
+            var claims = await authService.GetUserClaims(userDto);
+            var accessToken = authService.GenerateJwtToken(claims, jwtSettingsOptions.Value.Issuer);
 
             var refreshToken = new RefreshToken(TimeSpan.FromDays(7));
+            refreshToken.UserId = user.Id;
             user.AddRefreshToken(refreshToken);
-            _userRepository.AddRefreshToken(refreshToken);
+            userRepository.AddRefreshToken(refreshToken);
 
-            var ipAddress = _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "Unknown";
-            var userAgent = _httpContextAccessor.HttpContext?.Request?.Headers["User-Agent"].ToString() ?? "Unknown";
+            var ipAddress = httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "Unknown";
+            var userAgent = httpContextAccessor.HttpContext?.Request?.Headers["User-Agent"].ToString() ?? "Unknown";
             var userLoginEvent = new UserLoginEvent(user.Id, user.Username, user.Email, DateTime.UtcNow, ipAddress, userAgent);
-            await _eventPublisher.PublishAsync(userLoginEvent);
+            await eventPublisher.PublishAsync(userLoginEvent);
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             var authResult = new AuthResultDto(accessToken, refreshToken.Token);
             return Result.Ok(authResult);
