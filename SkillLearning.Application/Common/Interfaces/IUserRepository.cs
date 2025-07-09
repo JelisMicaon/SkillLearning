@@ -13,5 +13,7 @@ namespace SkillLearning.Application.Common.Interfaces
         void AddRefreshToken(RefreshToken refreshToken);
 
         Task<User?> GetUserByUsernameAsync(string username);
+
+        Task<bool> IsEmailInUseAsync(string email);
     }
 }

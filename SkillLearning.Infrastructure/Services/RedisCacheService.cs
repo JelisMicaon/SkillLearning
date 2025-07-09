@@ -4,19 +4,13 @@ using System.Text.Json;
 
 namespace SkillLearning.Infrastructure.Services
 {
-    public class RedisCacheService : ICacheService
+    public class RedisCacheService(IDistributedCache cache) : ICacheService
     {
-        private readonly IDistributedCache _cache;
         private static readonly JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
-
-        public RedisCacheService(IDistributedCache cache)
-        {
-            _cache = cache;
-        }
 
         public async Task<T?> GetAsync<T>(string key)
         {
-            var cached = await _cache.GetStringAsync(key);
+            var cached = await cache.GetStringAsync(key);
             return cached is null ? default : JsonSerializer.Deserialize<T>(cached, options);
         }
 
@@ -27,12 +21,12 @@ namespace SkillLearning.Infrastructure.Services
                 AbsoluteExpirationRelativeToNow = expiry ?? TimeSpan.FromMinutes(10)
             };
             var json = JsonSerializer.Serialize(value, RedisCacheService.options);
-            await _cache.SetStringAsync(key, json, options);
+            await cache.SetStringAsync(key, json, options);
         }
 
         public async Task RemoveAsync(string key)
         {
-            await _cache.RemoveAsync(key);
+            await cache.RemoveAsync(key);
         }
     }
 }

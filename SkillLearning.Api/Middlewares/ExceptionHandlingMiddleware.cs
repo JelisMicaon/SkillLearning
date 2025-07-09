@@ -5,26 +5,17 @@ using System.Text.Json;
 
 namespace SkillLearning.Api.Middlewares
 {
-    public class ExceptionHandlingMiddleware
+    public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-
-        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
-        {
-            _next = next;
-            _logger = logger;
-        }
-
         public async Task InvokeAsync(HttpContext context)
         {
             try
             {
-                await _next(context);
+                await next(context);
             }
             catch (ValidationException validationException)
             {
-                _logger.LogWarning(validationException, "Ocorreu um erro de validação: {Message}", validationException.Message);
+                logger.LogWarning(validationException, "Ocorreu um erro de validação: {Message}", validationException.Message);
 
                 context.Response.ContentType = "application/problem+json";
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -54,7 +45,7 @@ namespace SkillLearning.Api.Middlewares
             }
             catch (ArgumentException argEx)
             {
-                _logger.LogWarning(argEx, "Ocorreu um erro de argumento/dado inválido: {Message}", argEx.Message);
+                logger.LogWarning(argEx, "Ocorreu um erro de argumento/dado inválido: {Message}", argEx.Message);
 
                 context.Response.ContentType = "application/problem+json";
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -72,7 +63,7 @@ namespace SkillLearning.Api.Middlewares
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ocorreu uma exceção inesperada: {Message}", ex.Message);
+                logger.LogError(ex, "Ocorreu uma exceção inesperada: {Message}", ex.Message);
 
                 context.Response.ContentType = "application/problem+json";
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

@@ -8,7 +8,6 @@ namespace SkillLearning.Tests.UnitTests
 {
     public class RegisterUserCommandHandlerTests
     {
-        private readonly Mock<ICacheService> _cacheServiceMock;
         private readonly Mock<IEventPublisher> _eventPublisherMock;
         private readonly RegisterUserCommandHandler _handler;
         private readonly Mock<IUserRepository> _userRepositoryMock;
@@ -18,13 +17,11 @@ namespace SkillLearning.Tests.UnitTests
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _eventPublisherMock = new Mock<IEventPublisher>();
-            _cacheServiceMock = new Mock<ICacheService>();
             _iUnitOfWorkMock = new Mock<IUnitOfWork>();
 
             _handler = new RegisterUserCommandHandler(
                 _userRepositoryMock.Object,
                 _eventPublisherMock.Object,
-                _cacheServiceMock.Object,
                 _iUnitOfWorkMock.Object
             );
         }
@@ -67,7 +64,6 @@ namespace SkillLearning.Tests.UnitTests
 
             _iUnitOfWorkMock.Verify(r => r.SaveChangesAsync(CancellationToken.None), Times.Once);
             _eventPublisherMock.Verify(p => p.PublishAsync(It.IsAny<UserRegisteredEvent>(), null), Times.Once);
-            _cacheServiceMock.Verify(c => c.SetAsync(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<TimeSpan?>()), Times.Exactly(3));
         }
     }
 }

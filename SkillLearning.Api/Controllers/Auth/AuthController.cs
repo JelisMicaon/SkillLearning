@@ -9,21 +9,14 @@ namespace SkillLearning.Api.Controllers.Auth
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ApiControllerBase
+    public class AuthController(IMediator mediator) : ApiControllerBase
     {
-        private readonly IMediator _mediator;
-
-        public AuthController(IMediator mediator)
-        {
-            _mediator = mediator;
-        }
-
         [HttpGet("exists")]
         [AllowAnonymous]
         public async Task<IActionResult> CheckUserExists([FromQuery] string username, [FromQuery] string email)
         {
             var query = new CheckUserExistsQuery(username, email);
-            var result = await _mediator.Send(query);
+            var result = await mediator.Send(query);
             return HandleResult(result);
         }
 
@@ -31,7 +24,7 @@ namespace SkillLearning.Api.Controllers.Auth
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
         {
-            var result = await _mediator.Send(command);
+            var result = await mediator.Send(command);
             return HandleResult(result);
         }
 
@@ -39,7 +32,7 @@ namespace SkillLearning.Api.Controllers.Auth
         [AllowAnonymous]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
         {
-            var result = await _mediator.Send(command);
+            var result = await mediator.Send(command);
             return HandleResult(result);
         }
 
@@ -47,7 +40,7 @@ namespace SkillLearning.Api.Controllers.Auth
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterUserCommand command)
         {
-            var result = await _mediator.Send(command);
+            var result = await mediator.Send(command);
             if (result.IsSuccess)
                 return Ok(new { Message = "Usuário registrado com sucesso!" });
 

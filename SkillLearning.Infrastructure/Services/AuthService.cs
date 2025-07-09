@@ -9,14 +9,9 @@ using System.Text;
 
 namespace SkillLearning.Infrastructure.Services
 {
-    public class AuthService : IAuthService
+    public class AuthService(IConfiguration configuration) : IAuthService
     {
-        private readonly JwtSettings _jwtSettings;
-
-        public AuthService(IConfiguration configuration)
-        {
-            _jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>() ?? throw new ArgumentNullException(nameof(configuration), "JwtSettings não configurado.");
-        }
+        private readonly JwtSettings _jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>() ?? throw new ArgumentNullException(nameof(configuration), "JwtSettings não configurado.");
 
         public string GenerateJwtToken(IEnumerable<Claim> claims, string issuer)
         {
@@ -46,15 +41,20 @@ namespace SkillLearning.Infrastructure.Services
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
 
-            if (securityToken is not JwtSecurityToken jwtSecurityToken ||
-                !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            try
+            {
+                var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
+
+                if (securityToken is not JwtSecurityToken jwtSecurityToken || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                    return null;
+
+                return principal;
+            }
+            catch (SecurityTokenException)
             {
                 return null;
             }
-
-            return principal;
         }
 
         public async Task<List<Claim>> GetUserClaims(UserDto user)
