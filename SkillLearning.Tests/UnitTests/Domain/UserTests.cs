@@ -44,13 +44,13 @@ namespace SkillLearning.Tests.UnitTests.Domain
         [InlineData("")]
         [InlineData(" ")]
         [InlineData("email-invalido")]
-        public void ChangeEmail_ShouldThrowArgumentException_WhenEmailIsInvalid(string invalidEmail)
+        public void ChangeEmail_ShouldThrowArgumentException_WhenEmailIsInvalid(string? invalidEmail)
         {
             // Arrange
             var user = new User("testuser", "initial@email.com", "password123");
 
             // Act
-            var act = () => user.ChangeEmail(invalidEmail);
+            var act = () => user.ChangeEmail(invalidEmail!);
 
             // Assert
             act.Should().Throw<ArgumentException>();
@@ -60,10 +60,10 @@ namespace SkillLearning.Tests.UnitTests.Domain
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" ")]
-        public void Constructor_ShouldThrowArgumentException_WhenGivenNullOrWhitespacePassword(string invalidPassword)
+        public void Constructor_ShouldThrowArgumentException_WhenGivenNullOrWhitespacePassword(string? invalidPassword)
         {
             // Act
-            var act = () => new User("testuser", "test@email.com", invalidPassword);
+            var act = () => new User("testuser", "test@email.com", invalidPassword!);
 
             // Assert
             act.Should().Throw<ArgumentException>();
@@ -86,13 +86,13 @@ namespace SkillLearning.Tests.UnitTests.Domain
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" ")]
-        public void VerifyPassword_ShouldReturnFalse_WhenGivenNullOrWhitespacePassword(string invalidPassword)
+        public void VerifyPassword_ShouldReturnFalse_WhenGivenNullOrWhitespacePassword(string? invalidPassword)
         {
             // Arrange
             var user = new User("testuser", "test@email.com", "correctPassword123");
 
             // Act
-            var result = user.VerifyPassword(invalidPassword);
+            var result = user.VerifyPassword(invalidPassword!);
 
             // Assert
             result.Should().BeFalse();
