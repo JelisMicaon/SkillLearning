@@ -7,7 +7,7 @@
     <UserSecretsId>dotnet-SkillLearning.Workers.EmailSender-05923a31-15dc-486a-8d20-8a07ceaa5ca8</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>$(MSBuildProjectDirectory)/..</DockerfileContext>
-    <DockerfileFile>$(MSBuildProjectDirectory)/../Dockerfile.Workers.EmailSender</DockerfileFile>
+    <DockerfileFile>$(MSBuildProjectDirectory)/../../Dockerfile.Workers.EmailSender</DockerfileFile>
   </PropertyGroup>
 
   <ItemGroup>
