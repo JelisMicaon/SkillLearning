@@ -22,6 +22,7 @@ namespace SkillLearning.Tests.UnitTests
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly Mock<IOptions<JwtSettings>> _jwtSettingsOptionsMock;
         private readonly Mock<IUserRepository> _userRepositoryMock;
+        private readonly Mock<IActivityNotifier> _iActivityNotifier;
 
         public LoginUserCommandHandlerTests()
         {
@@ -31,6 +32,7 @@ namespace SkillLearning.Tests.UnitTests
             _eventPublisherMock = new Mock<IEventPublisher>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             _jwtSettingsOptionsMock = new Mock<IOptions<JwtSettings>>();
+            _iActivityNotifier = new Mock<IActivityNotifier>();
 
             var jwtSettings = new JwtSettings { Issuer = "TestIssuer", Key = "O8jLw5kXvPq9s2v8y/B?E(G+KbPeShVm" };
             _jwtSettingsOptionsMock.Setup(o => o.Value).Returns(jwtSettings);
@@ -41,7 +43,8 @@ namespace SkillLearning.Tests.UnitTests
                 _jwtSettingsOptionsMock.Object,
                 _eventPublisherMock.Object,
                 _httpContextAccessorMock.Object,
-                _iUnitOfWorkMock.Object
+                _iUnitOfWorkMock.Object,
+                _iActivityNotifier.Object
             );
         }
 
