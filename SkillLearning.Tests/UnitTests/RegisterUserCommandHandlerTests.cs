@@ -12,17 +12,20 @@ namespace SkillLearning.Tests.UnitTests
         private readonly RegisterUserCommandHandler _handler;
         private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<IUnitOfWork> _iUnitOfWorkMock;
+        private readonly Mock<IActivityNotifier> _iActivityNotifier;
 
         public RegisterUserCommandHandlerTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
             _eventPublisherMock = new Mock<IEventPublisher>();
             _iUnitOfWorkMock = new Mock<IUnitOfWork>();
+            _iActivityNotifier = new Mock<IActivityNotifier>();
 
             _handler = new RegisterUserCommandHandler(
                 _userRepositoryMock.Object,
                 _eventPublisherMock.Object,
-                _iUnitOfWorkMock.Object
+                _iUnitOfWorkMock.Object,
+                _iActivityNotifier.Object
             );
         }
 

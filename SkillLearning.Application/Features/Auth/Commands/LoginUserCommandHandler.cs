@@ -17,7 +17,8 @@ namespace SkillLearning.Application.Features.Auth.Commands
         IOptions<JwtSettings> jwtSettingsOptions,
         IEventPublisher eventPublisher,
         IHttpContextAccessor httpContextAccessor,
-        IUnitOfWork unitOfWork) : IRequestHandler<LoginUserCommand, Result<AuthResultDto>>
+        IUnitOfWork unitOfWork,
+        IActivityNotifier activityNotifier) : IRequestHandler<LoginUserCommand, Result<AuthResultDto>>
     {
 
         public async Task<Result<AuthResultDto>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
@@ -40,7 +41,7 @@ namespace SkillLearning.Application.Features.Auth.Commands
             var userAgent = httpContextAccessor.HttpContext?.Request?.Headers["User-Agent"].ToString() ?? "Unknown";
             var userLoginEvent = new UserLoginEvent(user.Id, user.Username, user.Email, DateTime.UtcNow, ipAddress, userAgent);
             await eventPublisher.PublishAsync(userLoginEvent);
-
+            await activityNotifier.NotifyUserLoggedIn(user.Username);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             var authResult = new AuthResultDto(accessToken, refreshToken.Token);

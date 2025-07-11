@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using SkillLearning.Api.Extensions;
+using SkillLearning.Api.Hubs;
 using SkillLearning.Api.Middlewares;
 using SkillLearning.Infrastructure.Persistence;
 using System.Threading.RateLimiting;
@@ -45,6 +46,9 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCustomServices(builder.Configuration);
 
+// SignalR
+builder.Services.AddSignalR();
+
 // App
 var app = builder.Build();
 
@@ -52,17 +56,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<ApplicationWriteDbContext>();
-        await context.Database.MigrateAsync();
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Ocorreu um erro durante a migração do banco de dados.");
-        throw;
-    }
+    var context = services.GetRequiredService<ApplicationWriteDbContext>();
+    await context.Database.MigrateAsync();
 }
 
 // Middleware pipeline
@@ -76,6 +71,7 @@ app.UseHttpsRedirection();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHub<ActivityHub>("/hubs/activity");
 app.MapControllers().RequireRateLimiting("fixed");
 
 await app.RunAsync();
