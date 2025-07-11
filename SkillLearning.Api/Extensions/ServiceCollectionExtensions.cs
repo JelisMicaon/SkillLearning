@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SkillLearning.Api.Services;
 using SkillLearning.Application.Common.Behaviors;
 using SkillLearning.Application.Common.Configuration;
 using SkillLearning.Application.Common.Interfaces;
@@ -72,6 +73,7 @@ namespace SkillLearning.Api.Extensions
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
             // 6. Serviços internos
+            services.AddTransient<IActivityNotifier, SignalRActivityNotifier>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IEventPublisher, KafkaProducerService>();
             services.AddScoped<IUserRepository, UserRepository>();

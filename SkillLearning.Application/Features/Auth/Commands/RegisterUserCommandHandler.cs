@@ -10,7 +10,8 @@ namespace SkillLearning.Application.Features.Auth.Commands
     public class RegisterUserCommandHandler(
          IUserRepository userRepository,
          IEventPublisher eventPublisher,
-         IUnitOfWork unitOfWork) : IRequestHandler<RegisterUserCommand, Result>
+         IUnitOfWork unitOfWork,
+         IActivityNotifier activityNotifier) : IRequestHandler<RegisterUserCommand, Result>
     {
         public async Task<Result> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
@@ -24,7 +25,7 @@ namespace SkillLearning.Application.Features.Auth.Commands
 
             var userRegisteredEvent = new UserRegisteredEvent(user.Id, user.Username, user.Email, user.CreatedAt);
             await eventPublisher.PublishAsync(userRegisteredEvent);
-
+            await activityNotifier.NotifyNewUserRegistered(user.Username);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Ok();
