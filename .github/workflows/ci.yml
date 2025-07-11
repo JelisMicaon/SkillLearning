@@ -1,23 +1,28 @@
-name: .NET CI
+name: CI for Backend and Frontend
 
 on:
-  pull_request_target:
-    branches: [ develop, main ]
   push:
-    branches: [ develop, main ]
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
 
 jobs:
-  build-and-test:
+  backend-ci:
+    name: Backend CI (.NET)
     runs-on: ubuntu-latest
+    
     permissions:
       pull-requests: write
+      
+    defaults:
+      run:
+        working-directory: ./Backend
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.ACCESS_TOKEN }}
-          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0 
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -25,13 +30,13 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore SkillLearning.sln
 
       - name: Build
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build SkillLearning.sln --no-restore --configuration Release
 
       - name: Test with Code Coverage
-        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage"
+        run: dotnet test SkillLearning.sln --no-build --configuration Release --collect:"XPlat Code Coverage"
       
       - name: Install ReportGenerator tool
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
@@ -39,7 +44,7 @@ jobs:
       - name: Generate Coverage Report
         run: |
           reportgenerator \
-          "-reports:${{ github.workspace }}/**/TestResults/**/*.cobertura.xml" \
+          "-reports:${{ github.workspace }}/Backend/**/TestResults/**/*.cobertura.xml" \
           "-targetdir:${{ github.workspace }}/coveragereport" \
           "-reporttypes:Html;MarkdownSummary"
 
@@ -47,4 +52,33 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
+          header: coverage-backend 
           path: ${{ github.workspace }}/coveragereport/Summary.md
+          
+  frontend-ci:
+    name: Frontend CI (React)
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./Frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint check
+        run: npm run lint
+
+      - name: Build for production
+        run: npm run build
