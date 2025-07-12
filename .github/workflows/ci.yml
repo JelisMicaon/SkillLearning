@@ -25,28 +25,35 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-          
+
       - name: Restore Dependencies
         run: |
           dotnet restore Backend/SkillLearning.Api/SkillLearning.Api.csproj
           dotnet restore Backend/SkillLearning.Workers.EmailSender/SkillLearning.Workers.EmailSender.csproj
           dotnet restore Backend/SkillLearning.Tests/SkillLearning.Tests.csproj
-          
+
       - name: Build Application
         run: |
           dotnet build Backend/SkillLearning.Api/SkillLearning.Api.csproj --no-restore --configuration Release
           dotnet build Backend/SkillLearning.Workers.EmailSender/SkillLearning.Workers.EmailSender.csproj --no-restore --configuration Release
       
       - name: Run Tests & Collect Coverage
-        run: dotnet test Backend/SkillLearning.Tests/SkillLearning.Tests.csproj --no-build --configuration Release --collect:"XPlat Code Coverage"
-      
+        run: >
+          dotnet test Backend/SkillLearning.Tests/SkillLearning.Tests.csproj 
+          --no-build 
+          --configuration Release
+          --logger "trx;logfilename=test_results.trx"
+          -p:CollectCoverage=true 
+          -p:CoverletOutputFormat=cobertura 
+          -p:CoverletOutput=./TestResults/
+
       - name: Install ReportGenerator tool
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
       
       - name: Generate Coverage Report
         run: |
           reportgenerator \
-          "-reports:${{ github.workspace }}/Backend/SkillLearning.Tests/TestResults/**/coverage.cobertura.xml" \
+          "-reports:${{ github.workspace }}/Backend/SkillLearning.Tests/TestResults/coverage.cobertura.xml" \
           "-targetdir:${{ github.workspace }}/coveragereport" \
           "-reporttypes:Html;MarkdownSummary"
 
