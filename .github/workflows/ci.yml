@@ -40,8 +40,8 @@ jobs:
         run: dotnet test SkillLearning.sln --no-build --configuration Release --logger trx --results-directory TestResults
 
       - name: 📊 Publish Test Report
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: dorny/test-reporter@v1
-        if: always()
         with:
           name: Unit Tests
           path: TestResults/*.trx
