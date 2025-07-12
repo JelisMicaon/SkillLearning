@@ -11,7 +11,7 @@
 
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>$(MSBuildProjectDirectory)/..</DockerfileContext>
-    <DockerfileFile>$(MSBuildProjectDirectory)/../Dockerfile</DockerfileFile>
+    <DockerfileFile>$(MSBuildProjectDirectory)/../../Dockerfile</DockerfileFile>
 
     <UserSecretsId>d7ed92bc-336a-49c6-b635-7ae0f28a198c</UserSecretsId>
   </PropertyGroup>

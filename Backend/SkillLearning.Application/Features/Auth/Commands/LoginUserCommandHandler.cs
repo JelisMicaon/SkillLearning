@@ -20,7 +20,6 @@ namespace SkillLearning.Application.Features.Auth.Commands
         IUnitOfWork unitOfWork,
         IActivityNotifier activityNotifier) : IRequestHandler<LoginUserCommand, Result<AuthResultDto>>
     {
-
         public async Task<Result<AuthResultDto>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
         {
             var user = await userRepository.GetUserByUsernameAsync(request.Username);
