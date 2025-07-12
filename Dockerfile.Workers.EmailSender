@@ -1,36 +1,27 @@
-# Usa a imagem base do .NET SDK para compilar o aplicativo
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /src # <--- Apenas o WORKDIR principal para a fase de build aqui
-
-# Copia os arquivos de projeto (csproj) de todos os projetos que seu Worker referenciar
-# As pastas serão criadas em /src/NomeDoProjeto/NomeDoProjeto.csproj
-COPY ["SkillLearning.Workers.EmailSender/SkillLearning.Workers.EmailSender.csproj", "SkillLearning.Workers.EmailSender/"]
-COPY ["SkillLearning.Application/SkillLearning.Application.csproj", "SkillLearning.Application/"]
-COPY ["SkillLearning.Domain/SkillLearning.Domain.csproj", "SkillLearning.Domain/"]
-COPY ["SkillLearning.Infrastructure/SkillLearning.Infrastructure.csproj", "SkillLearning.Infrastructure/"]
-
-# Restaura as dependências para o projeto Worker
-# O caminho para o .csproj é relativo ao WORKDIR atual (/src)
-RUN dotnet restore "SkillLearning.Workers.EmailSender/SkillLearning.Workers.EmailSender.csproj"
-
-# Copia todo o código-fonte restante da solução para o WORKDIR /src
-COPY . .
-
-# Compila o projeto Worker
-# O caminho para o .csproj é relativo ao WORKDIR atual (/src)
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet build "SkillLearning.Workers.EmailSender/SkillLearning.Workers.EmailSender.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR /src
 
-# Publica o aplicativo para que seja independente e leve
+COPY SkillLearning.sln ./
+COPY Backend/SkillLearning.Api Backend/SkillLearning.Api
+COPY Backend/SkillLearning.Application Backend/SkillLearning.Application
+COPY Backend/SkillLearning.Domain Backend/SkillLearning.Domain
+COPY Backend/SkillLearning.Infrastructure Backend/SkillLearning.Infrastructure
+COPY Backend/SkillLearning.Workers.EmailSender Backend/SkillLearning.Workers.EmailSender
+COPY Backend/SkillLearning.Tests Backend/SkillLearning.Tests
+
+RUN dotnet restore SkillLearning.sln
+
+WORKDIR /src/Backend/SkillLearning.Workers.EmailSender
+RUN dotnet build SkillLearning.Workers.EmailSender.csproj -c $BUILD_CONFIGURATION --no-restore
+
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-# O caminho para o .csproj é relativo ao WORKDIR /src da fase 'build'
-RUN dotnet publish "SkillLearning.Workers.EmailSender/SkillLearning.Workers.EmailSender.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish SkillLearning.Workers.EmailSender.csproj -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# Imagem final de runtime, baseada na imagem menor de runtime do .NET
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+ && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=publish /app/publish .
-
-# Comando para executar o Worker Service
 ENTRYPOINT ["dotnet", "SkillLearning.Workers.EmailSender.dll"]

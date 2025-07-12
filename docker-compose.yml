@@ -9,7 +9,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Default: "Host=postgres-primary;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD}"
-      ConnectionStrings__ReadOnly: "Host=postgres-replica;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD}"
+      ConnectionStrings__ReadOnly: "Host=postgres-primary;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD}"
       Redis__ConnectionString: redis:6379
       Kafka__BootstrapServers: kafka:29092
       Jwt__Key: ${JWT_KEY}
@@ -17,8 +17,6 @@ services:
       Jwt__Audience: https://skilllearning-api:4200
     depends_on:
       postgres-primary:
-        condition: service_healthy
-      postgres-replica:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -61,30 +59,6 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - skilllearning-net
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 45s
-
-  postgres-replica:
-    image: postgres:15
-    container_name: postgres-replica
-    restart: always
-    ports:
-      - "5433:5432"
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USERNAME}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - pgdata-replica:/var/lib/postgresql/data
-    networks:
-      - skilllearning-net
-    depends_on:
-      postgres-primary:
-        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -192,7 +166,6 @@ networks:
 
 volumes:
   pgdata:
-  pgdata-replica:
   zookeeper-data:
   zookeeper-log:
   kafka-data:

@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36203.30
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Api", "SkillLearning.Api\SkillLearning.Api.csproj", "{8848C943-0F44-06D7-177C-323D41B5593E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Api", "Backend\SkillLearning.Api\SkillLearning.Api.csproj", "{8848C943-0F44-06D7-177C-323D41B5593E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Application", "SkillLearning.Application\SkillLearning.Application.csproj", "{2A19091E-90AC-0F11-7F81-06EDA12BD44C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Application", "Backend\SkillLearning.Application\SkillLearning.Application.csproj", "{2A19091E-90AC-0F11-7F81-06EDA12BD44C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Domain", "SkillLearning.Domain\SkillLearning.Domain.csproj", "{688A897B-4D2D-E43D-99C6-A80D4B40D069}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Domain", "Backend\SkillLearning.Domain\SkillLearning.Domain.csproj", "{688A897B-4D2D-E43D-99C6-A80D4B40D069}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Infrastructure", "SkillLearning.Infrastructure\SkillLearning.Infrastructure.csproj", "{2E47FCEE-B864-E45F-43A4-29A9657D407D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Infrastructure", "Backend\SkillLearning.Infrastructure\SkillLearning.Infrastructure.csproj", "{2E47FCEE-B864-E45F-43A4-29A9657D407D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Tests", "SkillLearning.Tests\SkillLearning.Tests.csproj", "{2FE89752-EEA9-4DA5-2523-C9FD348F4DF3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Tests", "Backend\SkillLearning.Tests\SkillLearning.Tests.csproj", "{2FE89752-EEA9-4DA5-2523-C9FD348F4DF3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Workers.EmailSender", "SkillLearning.Workers.EmailSender\SkillLearning.Workers.EmailSender.csproj", "{6C8C81A1-47A1-4581-A0D5-50B29AB7F433}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillLearning.Workers.EmailSender", "Backend\SkillLearning.Workers.EmailSender\SkillLearning.Workers.EmailSender.csproj", "{6C8C81A1-47A1-4581-A0D5-50B29AB7F433}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
