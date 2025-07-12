@@ -46,3 +46,31 @@ jobs:
           name: Unit Tests
           path: TestResults/*.trx
           reporter: dotnet-trx
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: ✨ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🌐 Setup .NET 9.0.x
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: ♻ Restore dependencies
+        run: dotnet restore
+
+      - name: ⚙️ Build project
+        run: dotnet build --configuration Release --no-restore
+
+      - name: 🚀 Publish
+        run: dotnet publish -c Release -o ./publish
+
+      - name: 🔑 Deploy artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: skilllearning-deploy
+          path: ./publish
