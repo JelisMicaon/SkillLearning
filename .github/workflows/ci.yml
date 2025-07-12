@@ -7,16 +7,13 @@ on:
     branches: [ "main", "develop" ]
 
 jobs:
+  # --- TRABALHO PARA O BACKEND .NET ---
   backend-ci:
     name: Backend CI (.NET)
     runs-on: ubuntu-latest
     
     permissions:
       pull-requests: write
-
-    defaults:
-      run:
-        working-directory: ./Backend
 
     steps:
       - name: Checkout code
@@ -28,26 +25,28 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-
-      - name: Restore dependencies
-        run: dotnet restore Backend.sln
-
-      - name: Build
-        run: dotnet build Backend.sln --no-restore --configuration Release
-
-      - name: Test
-        run: dotnet test Backend.sln --no-build --configuration Release --collect:"XPlat Code Coverage"
+          
+      - name: Restore Dependencies
+        run: |
+          dotnet restore Backend/SkillLearning.Api/SkillLearning.Api.csproj
+          dotnet restore Backend/SkillLearning.Workers.EmailSender/SkillLearning.Workers.EmailSender.csproj
+          dotnet restore Backend/SkillLearning.Tests/SkillLearning.Tests.csproj
+          
+      - name: Build Application
+        run: |
+          dotnet build Backend/SkillLearning.Api/SkillLearning.Api.csproj --no-restore --configuration Release
+          dotnet build Backend/SkillLearning.Workers.EmailSender/SkillLearning.Workers.EmailSender.csproj --no-restore --configuration Release
+      
+      - name: Run Tests & Collect Coverage
+        run: dotnet test Backend/SkillLearning.Tests/SkillLearning.Tests.csproj --no-build --configuration Release --collect:"XPlat Code Coverage"
       
       - name: Install ReportGenerator tool
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
       
       - name: Generate Coverage Report
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-      
-      - name: Generate Coverage Report
         run: |
           reportgenerator \
-          "-reports:${{ github.workspace }}/Backend/**/TestResults/**/*.cobertura.xml" \
+          "-reports:${{ github.workspace }}/Backend/SkillLearning.Tests/TestResults/**/coverage.cobertura.xml" \
           "-targetdir:${{ github.workspace }}/coveragereport" \
           "-reporttypes:Html;MarkdownSummary"
 
@@ -73,7 +72,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20' 
           cache: 'npm'
           cache-dependency-path: Frontend/package-lock.json
 
