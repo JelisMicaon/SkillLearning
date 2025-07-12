@@ -17,7 +17,7 @@ jobs:
       - name: ✨ Checkout code
         uses: actions/checkout@v4
 
-      - name: ♻ Restore dependencies
+      - name: ♻ Restore NuGet packages
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
@@ -30,14 +30,14 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
-      - name: ⚖️ Install dependencies
-        run: dotnet restore
+      - name: ⚖️ Restore solution
+        run: dotnet restore SkillLearning.sln
 
-      - name: ⚙️ Build project
-        run: dotnet build --no-restore --configuration Release
+      - name: ⚙️ Build solution
+        run: dotnet build SkillLearning.sln --no-restore --configuration Release
 
       - name: ✅ Run tests
-        run: dotnet test --no-build --configuration Release --logger trx --results-directory TestResults
+        run: dotnet test SkillLearning.sln --no-build --configuration Release --logger trx --results-directory TestResults
 
       - name: 📊 Publish Test Report
         uses: dorny/test-reporter@v1
@@ -60,17 +60,17 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: ♻ Restore dependencies
-        run: dotnet restore
+      - name: ♻ Restore solution
+        run: dotnet restore SkillLearning.sln
 
-      - name: ⚙️ Build project
-        run: dotnet build --configuration Release --no-restore
+      - name: ⚙️ Build solution
+        run: dotnet build SkillLearning.sln --configuration Release --no-restore
 
-      - name: 🚀 Publish
-        run: dotnet publish -c Release -o ./publish
+      - name: 🚀 Publish backend
+        run: dotnet publish Backend --configuration Release --output ./publish
 
       - name: 🔑 Deploy artifact
         uses: actions/upload-artifact@v4
         with:
-          name: skilllearning-deploy
+          name: skilllearning-backend
           path: ./publish
