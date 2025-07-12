@@ -1,71 +1,74 @@
-name: CI for Backend and Frontend
+# Nome do workflow
+name: Build and Test SkillLearning
 
+# Gatilhos: Quando o workflow deve rodar
 on:
   push:
     branches: [ "main", "develop" ]
   pull_request:
     branches: [ "main", "develop" ]
 
+# Define os jobs que serão executados
 jobs:
-  # --- TRABALHO PARA O BACKEND .NET ---
-  backend-ci:
-    name: Backend CI (.NET)
+  # --- JOB PARA O BACKEND .NET ---
+  backend:
+    name: Build & Test Backend (.NET)
+    # Usa uma máquina virtual Ubuntu limpa
     runs-on: ubuntu-latest
     
+    # Permissões para poder comentar no Pull Request
     permissions:
       pull-requests: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 
+    # Passo 1: Baixa o código do seu repositório para a máquina virtual
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        # Necessário para o ReportGenerator ler o histórico do Git
+        fetch-depth: 0 
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
+    # Passo 2: Instala o SDK do .NET
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
 
-      - name: Restore Dependencies
-        run: |
-          dotnet restore Backend/SkillLearning.Api/SkillLearning.Api.csproj
-          dotnet restore Backend/SkillLearning.Workers.EmailSender/SkillLearning.Workers.EmailSender.csproj
-          dotnet restore Backend/SkillLearning.Tests/SkillLearning.Tests.csproj
+    # Passo 3: Restaura as dependências dos projetos .NET
+    # Usamos o Backend.sln para focar apenas no backend
+    - name: Restore Dependencies
+      run: dotnet restore Backend/Backend.sln
 
-      - name: Build Application
-        run: |
-          dotnet build Backend/SkillLearning.Api/SkillLearning.Api.csproj --no-restore --configuration Release
-          dotnet build Backend/SkillLearning.Workers.EmailSender/SkillLearning.Workers.EmailSender.csproj --no-restore --configuration Release
-      
-      - name: Run Tests & Collect Coverage
-        run: >
-          dotnet test Backend/SkillLearning.Tests/SkillLearning.Tests.csproj 
-          --no-build 
-          --configuration Release
-          --logger "trx;logfilename=test_results.trx"
-          -p:CollectCoverage=true 
-          -p:CoverletOutputFormat=cobertura 
-          -p:CoverletOutput=./TestResults/
+    # Passo 4: Compila todo o backend em modo Release
+    - name: Build
+      run: dotnet build Backend/Backend.sln --configuration Release --no-restore
 
-      - name: Install ReportGenerator tool
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-      
-      - name: Generate Coverage Report
-        run: |
-          reportgenerator \
-          "-reports:${{ github.workspace }}/Backend/SkillLearning.Tests/TestResults/coverage.cobertura.xml" \
-          "-targetdir:${{ github.workspace }}/coveragereport" \
-          "-reporttypes:Html;MarkdownSummary"
+    # Passo 5: Roda os testes e coleta a cobertura de código
+    # Usa o arquivo .runsettings que criamos, a forma mais robusta.
+    - name: Run Tests & Collect Coverage
+      run: dotnet test Backend/SkillLearning.Tests/SkillLearning.Tests.csproj --configuration Release --no-build --settings coverlet.runsettings --logger "trx;logfilename=test-results.trx"
 
-      - name: Add Coverage Comment to PR
-        if: github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: coverage-backend 
-          path: ${{ github.workspace }}/coveragereport/Summary.md
-          
-  frontend-ci:
-    name: Frontend CI (React)
+    # Passo 6: Gera o relatório de cobertura legível
+    - name: Generate Coverage Report
+      run: |
+        dotnet tool install --global dotnet-reportgenerator-globaltool
+        reportgenerator \
+        "-reports:${{ github.workspace }}/Backend/SkillLearning.Tests/TestResults/**/coverage.cobertura.xml" \
+        "-targetdir:${{ github.workspace }}/coverage-report" \
+        "-reporttypes:Html;MarkdownSummary"
+
+    # Passo 7: Comenta o resultado no Pull Request
+    - name: Add Coverage Comment to PR
+      if: github.event_name == 'pull_request'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: coverage-backend 
+        path: ${{ github.workspace }}/coverage-report/Summary.md
+
+  # --- JOB PARA O FRONTEND REACT ---
+  frontend:
+    name: Build & Test Frontend (React)
+    # Roda em paralelo com o job do backend
     runs-on: ubuntu-latest
     
     defaults:
@@ -73,21 +76,26 @@ jobs:
         working-directory: ./Frontend
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    # Passo 1: Baixa o código
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20' 
-          cache: 'npm'
-          cache-dependency-path: Frontend/package-lock.json
+    # Passo 2: Instala o Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20' 
+        cache: 'npm'
+        cache-dependency-path: Frontend/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+    # Passo 3: Instala as dependências do frontend
+    - name: Install Dependencies
+      run: npm ci
 
-      - name: Lint check
-        run: npm run lint
+    # Passo 4: Roda o Lint para verificar a qualidade do código
+    - name: Lint Check
+      run: npm run lint
 
-      - name: Build for production
-        run: npm run build
+    # Passo 5: Compila o projeto para produção para garantir que não há erros
+    - name: Production Build
+      run: npm run build
