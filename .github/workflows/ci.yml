@@ -13,7 +13,7 @@ jobs:
     
     permissions:
       pull-requests: write
-      
+
     defaults:
       run:
         working-directory: ./Backend
@@ -30,15 +30,18 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore ../SkillLearning.sln
+        run: dotnet restore Backend.sln
 
       - name: Build
-        run: dotnet build ../SkillLearning.sln --no-restore --configuration Release
+        run: dotnet build Backend.sln --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test ../SkillLearning.sln --no-build --configuration Release --collect:"XPlat Code Coverage"
+        run: dotnet test Backend.sln --no-build --configuration Release --collect:"XPlat Code Coverage"
       
       - name: Install ReportGenerator tool
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      
+      - name: Generate Coverage Report
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
       
       - name: Generate Coverage Report
