@@ -33,3 +33,8 @@ variable "db_password" {
   type        = string
   sensitive   = true
 }
+
+variable "allowed_ssh_cidr" {
+  description = "CIDR block allowed to SSH into the instance."
+  type        = string
+}
