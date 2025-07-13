@@ -27,7 +27,10 @@ jobs:
         uses: anmol098/fill-readme-action@main
         with:
           readme_path: "README.md"
-          data_source: "echo '```'; tree Backend -L 3 --dirsfirst -I 'bin|obj|.vs|Properties'; echo '```'"
+          data_source: |
+            echo '```'
+            tree Backend -L 3 --dirsfirst -I 'bin|obj|.vs|Properties'
+            echo '```'
           section_name: "project_tree"
           gh_token: ${{ secrets.GH_PAT }}
           commit_message: "docs: update project structure tree"
