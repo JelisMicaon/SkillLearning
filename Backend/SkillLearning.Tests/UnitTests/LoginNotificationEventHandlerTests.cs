@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Moq;
 using SkillLearning.Application.Common.Interfaces;
-using SkillLearning.Application.Features.Auth.EventHandlers;
+using SkillLearning.Application.Features.Auth.EventHandlersUseCase;
 using SkillLearning.Domain.Events;
 
 namespace SkillLearning.Tests.UnitTests

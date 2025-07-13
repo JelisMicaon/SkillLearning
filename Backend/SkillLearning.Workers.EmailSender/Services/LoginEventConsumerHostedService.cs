@@ -1,6 +1,6 @@
 ﻿using Confluent.Kafka;
 using SkillLearning.Application.Common.Interfaces;
-using SkillLearning.Application.Features.Auth.EventHandlers;
+using SkillLearning.Application.Features.Auth.EventHandlersUseCase;
 using SkillLearning.Domain.Events;
 
 namespace SkillLearning.Workers.EmailSender.Services

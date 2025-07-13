@@ -1,0 +1,188 @@
+version: '3.8'
+
+services:
+  skilllearning-api:
+    container_name: skilllearning-api
+    build:
+      context: ..
+      dockerfile: Build/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: "Host=postgres-primary;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD}"
+      ConnectionStrings__ReadOnly: "Host=postgres-primary;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD}"
+      Redis__ConnectionString: redis:6379
+      Kafka__BootstrapServers: kafka:29092
+      Jwt__Key: ${JWT_KEY}
+      Jwt__Issuer: http://skilllearning-api:5000
+      Jwt__Audience: https://skilllearning-api:4200
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: always
+    networks:
+      - skilllearning-net
+
+  skilllearning-workers-emailsender:
+    container_name: skilllearning-workers-emailsender
+    build:
+      context: ..
+      dockerfile: Build/Dockerfile.Workers.EmailSender
+    environment:
+      Kafka__BootstrapServers: kafka:29092
+      EmailSettings__SmtpServer: smtp.gmail.com
+      EmailSettings__SmtpPort: 587
+      EmailSettings__SmtpUsername: ${EMAIL_SENDER_USER}
+      EmailSettings__SmtpPassword: ${EMAIL_SENDER_PASSWORD}
+      EmailSettings__SenderEmail: ${EMAIL_SENDER_USER}
+      EmailSettings__SenderName: SkillLearning
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - skilllearning-net
+
+  postgres-primary:
+    image: postgres:15
+    container_name: postgres-primary
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - skilllearning-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - skilllearning-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - "8081:5540"
+    networks:
+      - skilllearning-net
+    depends_on:
+      - redis
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-log:/var/lib/zookeeper/log
+    networks:
+      - skilllearning-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.0.1
+    hostname: kafka
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - skilllearning-net
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local-kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - skilllearning-net
+
+  xray-daemon:
+    image: amazon/aws-xray-daemon:latest
+    container_name: xray-daemon
+    ports:
+      - "2000:2000/udp"
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+    networks:
+      - skilllearning-net
+
+networks:
+  skilllearning-net:
+    driver: bridge
+
+volumes:
+  pgdata:
+  zookeeper-data:
+  zookeeper-log:
+  kafka-data:
+  redis-data:
+
+# docker-compose -f Build/docker-compose.yml down
+# docker-compose -f Build/docker-compose.yml up -d --build
+
+# dotnet ef migrations add InitialCreate --project SkillLearning.Infrastructure --output-dir Persistence/Migrations
+# dotnet ef database update --project SkillLearning.Infrastructure
+
+# dotnet test --collect:"XPlat Code Coverage"
+# reportgenerator "-reports:**/TestResults/**/*.cobertura.xml" "-targetdir:coveragereport" "-reporttypes:Html"
+
+# dotnet user-secrets list --project SkillLearning.Api
+# dotnet user-secrets list --project SkillLearning.Workers.EmailSender
+# adicionar secret: dotnet user-secrets set "ConnectionStrings:ReadOnly" "localhost" --project SkillLearning.Api

@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SkillLearning.Api.Contracts;
 using SkillLearning.Api.Controllers.Common;
-using SkillLearning.Application.Features.Auth.Queries;
-using SkillLearning.Application.Features.Users.Commands;
+using SkillLearning.Application.Features.Auth.GetUserByUsernameUseCase;
+using SkillLearning.Application.Features.Users.UpdateUserEmailUseCase;
 
 namespace SkillLearning.Api.Controllers.Auth
 {

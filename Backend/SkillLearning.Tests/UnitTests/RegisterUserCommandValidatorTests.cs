@@ -1,6 +1,5 @@
 ﻿using FluentValidation.TestHelper;
-using SkillLearning.Application.Features.Auth.Commands;
-using SkillLearning.Application.Features.Auth.Commands.Validators;
+using SkillLearning.Application.Features.Auth.RegisterUserUseCase;
 
 namespace SkillLearning.Tests.UnitTests
 {
