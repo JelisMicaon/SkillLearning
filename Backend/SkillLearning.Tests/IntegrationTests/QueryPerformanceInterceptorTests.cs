@@ -63,6 +63,7 @@ namespace SkillLearning.Tests.IntegrationTests
         {
             // Arrange
             var fastQuery = "SELECT 1";
+            _listLogger.Logs.Clear();
 
             // Act
             await _context.Database.ExecuteSqlRawAsync(fastQuery);
