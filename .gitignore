@@ -409,3 +409,4 @@ FodyWeavers.xsd
 *_tree.txt
 .env
 /coveragereport
+Terraform/terraform.tfvars
