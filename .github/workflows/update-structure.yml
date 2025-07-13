@@ -23,14 +23,34 @@ jobs:
       - name: Install tree
         run: sudo apt-get update && sudo apt-get install -y tree
 
-      - name: Generate and inject project tree
-        uses: anmol098/fill-readme-action@main
+      - name: Generate project tree file
+        run: tree Backend -L 3 --dirsfirst -I 'bin|obj|.vs|Properties' > project_tree.txt
+
+      - name: Update README with project tree
+        run: |
+          python -c "
+          import re
+          # Lê o conteúdo do arquivo com a árvore
+          with open('project_tree.txt', 'r') as f:
+              tree_content = f.read()
+          
+          # Lê o conteúdo do README
+          with open('README.md', 'r') as f:
+              readme_content = f.read()
+          
+          # Prepara o bloco de substituição, já com a formatação de código do Markdown
+          replacement_block = f'\n```\n{tree_content}```\n'
+          
+          # Encontra os marcadores e substitui o conteúdo
+          new_readme = re.sub(r'[\s\S]*', replacement_block, readme_content)
+          
+          # Escreve o novo conteúdo de volta no arquivo README.md
+          with open('README.md', 'w') as f:
+              f.write(new_readme)
+          "
+      
+      - name: Commit and push if changed
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          readme_path: "README.md"
-          data_source: |
-            echo '```'
-            tree Backend -L 3 --dirsfirst -I 'bin|obj|.vs|Properties'
-            echo '```'
-          section_name: "project_tree"
-          gh_token: ${{ secrets.GH_PAT }}
           commit_message: "docs: update project structure tree"
+          file_pattern: README.md
