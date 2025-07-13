@@ -138,7 +138,105 @@ A fundação do projeto é baseada em princípios que garantem um sistema manute
 
 Abaixo está a estrutura de pastas do backend, refletindo os princípios da Arquitetura Limpa.
 
+```
+Backend
+├── SkillLearning.Api
+│   ├── Contracts
+│   │   └── UpdateEmailRequest.cs
+│   ├── Controllers
+│   │   ├── Auth
+│   │   └── Common
+│   ├── Extensions
+│   │   └── ServiceCollectionExtensions.cs
+│   ├── Hubs
+│   │   └── ActivityHub.cs
+│   ├── Middlewares
+│   │   └── ExceptionHandlingMiddleware.cs
+│   ├── Services
+│   │   └── SignalRActivityNotifier.cs
+│   ├── Program.cs
+│   ├── SkillLearning.Api.csproj
+│   ├── SkillLearning.Api.http
+│   ├── appsettings.Development.json
+│   └── appsettings.json
+├── SkillLearning.Application
+│   ├── Common
+│   │   ├── Behaviors
+│   │   ├── Configuration
+│   │   ├── Errors
+│   │   ├── Interfaces
+│   │   └── Models
+│   ├── Features
+│   │   ├── Auth
+│   │   └── Users
+│   └── SkillLearning.Application.csproj
+├── SkillLearning.Domain
+│   ├── Common
+│   │   └── EntityBase.cs
+│   ├── Entities
+│   │   ├── RefreshToken.cs
+│   │   └── User.cs
+│   ├── Enums
+│   │   └── UserRole.cs
+│   ├── Events
+│   │   ├── UserLoginEvent.cs
+│   │   └── UserRegisteredEvent.cs
+│   └── SkillLearning.Domain.csproj
+├── SkillLearning.Infrastructure
+│   ├── Configuration
+│   │   └── EmailSettings.cs
+│   ├── Persistence
+│   │   ├── Configurations
+│   │   ├── Migrations
+│   │   ├── Repositories
+│   │   ├── ApplicationDbContext.cs
+│   │   ├── ApplicationDbContextFactory.cs
+│   │   ├── ApplicationReadDbContext.cs
+│   │   ├── ApplicationWriteDbContext.cs
+│   │   ├── DbContextBase.cs
+│   │   └── QueryPerformanceInterceptor.cs
+│   ├── Services
+│   │   ├── AuthService.cs
+│   │   ├── EmailSender.cs
+│   │   ├── KafkaConsumerService.cs
+│   │   ├── KafkaProducerService.cs
+│   │   └── RedisCacheService.cs
+│   └── SkillLearning.Infrastructure.csproj
+├── SkillLearning.Tests
+│   ├── IntegrationTests
+│   │   ├── EmailSenderTests.cs
+│   │   ├── KafkaConsumerServiceTests.cs
+│   │   ├── KafkaMessagingTests.cs
+│   │   ├── QueryPerformanceInterceptorTests.cs
+│   │   ├── ReadDbContextTests.cs
+│   │   ├── RedisCacheServiceTests.cs
+│   │   └── UserRepositoryTests.cs
+│   ├── TestHelpers
+│   │   └── ListLogger.cs
+│   ├── UnitTests
+│   │   ├── Auth
+│   │   ├── Domain
+│   │   ├── Services
+│   │   ├── Users
+│   │   ├── CheckUserExistsQueryHandlerTests.cs
+│   │   ├── GetUserByUsernameQueryHandlerTests.cs
+│   │   ├── LoginNotificationEventHandlerTests.cs
+│   │   ├── LoginUserCommandHandlerTests.cs
+│   │   ├── LoginUserCommandValidatorTests.cs
+│   │   ├── RegisterUserCommandHandlerTests.cs
+│   │   ├── RegisterUserCommandValidatorTests.cs
+│   │   └── ValidationBehaviorTests.cs
+│   └── SkillLearning.Tests.csproj
+└── SkillLearning.Workers.EmailSender
+    ├── Services
+    │   └── LoginEventConsumerHostedService.cs
+    ├── Program.cs
+    ├── SkillLearning.Workers.EmailSender.csproj
+    ├── appsettings.Development.json
+    └── appsettings.json
 
+42 directories, 53 files
+```
 
 ---
 
