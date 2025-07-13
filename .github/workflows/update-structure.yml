@@ -1,4 +1,4 @@
-name: Update Project Structure Tree
+name: Generate README
 
 on:
   workflow_dispatch:
@@ -6,12 +6,13 @@ on:
     branches:
       - main
     paths:
+      - 'README.template.md'
       - 'Backend/**'
       - '.github/workflows/update-structure.yml'
 
 jobs:
-  update_tree:
-    name: Update Project Structure Tree
+  build:
+    name: Generate README
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -26,53 +27,26 @@ jobs:
       - name: Generate project tree file
         run: tree Backend -L 3 --dirsfirst -I 'bin|obj|.vs|Properties' > project_tree.txt
 
-      - name: Update README with project tree
+      - name: Generate README.md from template
         run: |
           python -c "
-          import re
-          import sys
-
-          # --- Travas de Segurança ---
-          try:
-              with open('project_tree.txt', 'r') as f:
-                  tree_content = f.read()
-              if not tree_content:
-                  print('Erro: Arquivo project_tree.txt está vazio. Abortando.')
-                  sys.exit(1)
-          except FileNotFoundError:
-              print('Erro: Arquivo project_tree.txt não foi encontrado. Abortando.')
-              sys.exit(1)
-
-          with open('README.md', 'r') as f:
-              readme_content = f.read()
-
-          start_marker = ''
-          end_marker = ''
-
-          if start_marker not in readme_content or end_marker not in readme_content:
-              print(f'Erro: Marcadores não encontrados no README.md. Verifique se ambos {start_marker} e {end_marker} existem.')
-              sys.exit(1)
-          # --- Fim das Travas de Segurança ---
-
-          # Prepara o bloco de substituição
-          replacement_block = f'{start_marker}\n```\n{tree_content}```\n{end_marker}'
-
-          # Usa regex para encontrar e substituir o bloco inteiro
-          # O 're.DOTALL' garante que a busca funcione através de múltiplas linhas
-          pattern = re.compile(f'{re.escape(start_marker)}.*{re.escape(end_marker)}', re.DOTALL)
+          # Lê o conteúdo do template e da árvore gerada
+          with open('README.template.md', 'r') as f: template_content = f.read()
+          with open('project_tree.txt', 'r') as f: tree_content = f.read()
           
-          if not pattern.search(readme_content):
-              print(f'Erro: Padrão regex não encontrou correspondência no README.md.')
-              sys.exit(1)
-
-          new_readme = pattern.sub(replacement_block, readme_content)
-
+          # Prepara o bloco de código da árvore
+          tree_block = f'```\n{tree_content}```'
+          
+          # Lógica de substituição segura: troca o placeholder pelo bloco da árvore
+          new_readme = template_content.replace('{{project_tree}}', tree_block)
+          
+          # Escreve o resultado em um NOVO (ou sobrescreve o antigo) README.md
           with open('README.md', 'w') as f:
               f.write(new_readme)
           "
-      
-      - name: Commit and push if changed
+
+      - name: Commit and push generated README.md
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "docs: update project structure tree"
+          commit_message: "docs: generate and update README.md from template"
           file_pattern: README.md
