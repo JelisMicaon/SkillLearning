@@ -1,17 +1,18 @@
-# 🚀 SkillLearning API
+<div align="center">
+  <h1>🚀 SkillLearning API</h1>
+  <p>
+    <strong>Uma API robusta e escalável construída com .NET 9, Clean Architecture e Padrões de Design Avançados.</strong>
+  </p>
+</div>
 
-<p align="left">
+<p align="center">
   <a href="https://github.com/JonasMacielWork/SkillLearning/actions/workflows/ci.yml">
-    <img src="https://github.com/JonasMacielWork/SkillLearning/actions/workflows/ci.yml/badge.svg" alt="CI Pipeline Status"/>
+    <img src="https://github.com/JonasMacielWork/SkillLearning/actions/workflows/ci.yml/badge.svg" alt="CI Pipeline"/>
   </a>
-  <a href="#"><img src="https://img.shields.io/badge/.NET-9.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET 9"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white" alt="C#"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/Kafka-232323?style=for-the-badge&logo=apache-kafka&logoColor=white" alt="Kafka"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis"/></a>
+  <img src="https://img.shields.io/github/last-commit/JonasMacielWork/SkillLearning?style=flat-square" alt="Last Commit"/>
+  <img src="https://img.shields.io/github/languages/top/JonasMacielWork/SkillLearning?style=flat-square" alt="Top Language"/>
   <a href="https://opensource.org/licenses/MIT">
-    <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License: MIT"/>
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="License"/>
   </a>
 </p>
 
