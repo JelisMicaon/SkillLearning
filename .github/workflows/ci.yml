@@ -1,4 +1,4 @@
-name: CI - SkillLearning
+name: .NET and Node.js CI
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
   build-and-test-backend:
     name: Build, Test & Publish Backend
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: ✨ Checkout code
         uses: actions/checkout@v4
@@ -20,6 +20,14 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
+      - name: ♻️ Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
       - name: 📦 Restore dependencies
         run: dotnet restore SkillLearning.sln
 
@@ -28,15 +36,12 @@ jobs:
 
       - name: 🧪 Run tests and collect coverage
         run: >
-          dotnet test SkillLearning.sln
-          --no-build
-          --configuration Release
-          /p:CollectCoverage=true
-          /p:CoverletOutputFormat=lcov
+          dotnet test SkillLearning.sln 
+          --no-build 
+          --configuration Release 
+          /p:CollectCoverage=true 
+          /p:CoverletOutputFormat=lcov 
           /p:CoverletOutput=${{ github.workspace }}/coverage/lcov.info
-
-      - name: 🧐 Verify generated files
-        run: ls -R
 
       - name: 🚀 Publish coverage report to Coveralls
         uses: coverallsapp/github-action@v2
@@ -68,7 +73,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm' # Habilita o cache para o npm
+          cache: 'npm'
           cache-dependency-path: Frontend/package-lock.json
 
       - name: 📁 Install dependencies
