@@ -9,6 +9,9 @@
   <a href="https://github.com/JonasMacielWork/SkillLearning/actions/workflows/ci.yml">
     <img src="https://github.com/JonasMacielWork/SkillLearning/actions/workflows/ci.yml/badge.svg" alt="CI Pipeline"/>
   </a>
+  <a href="https://coveralls.io/github/JonasMacielWork/SkillLearning?branch=main">
+    <img src="https://coveralls.io/repos/github/JonasMacielWork/SkillLearning/badge.svg?branch=main" alt="Coverage Status"/>
+  </a>
   <img src="https://img.shields.io/github/last-commit/JonasMacielWork/SkillLearning?style=flat-square" alt="Last Commit"/>
   <img src="https://img.shields.io/github/languages/top/JonasMacielWork/SkillLearning?style=flat-square" alt="Top Language"/>
   <a href="https://opensource.org/licenses/MIT">
