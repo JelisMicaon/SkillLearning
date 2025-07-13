@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'Backend/**'
+      - '.github/workflows/update-structure.yml'
 
 jobs:
   update_tree:
@@ -22,37 +23,11 @@ jobs:
       - name: Install tree
         run: sudo apt-get update && sudo apt-get install -y tree
 
-      - name: Generate project tree
-        run: |
-          echo '```' > tree.md
-          tree Backend -L 3 --dirsfirst -I 'bin|obj|.vs|Properties' >> tree.md
-          echo '```' >> tree.md
-
-      - name: Inject tree into README
-        uses: anmol098/string-replace-action@v1.3
+      - name: Generate and inject project tree
+        uses: anmol098/fill-readme-action@main
         with:
-          pattern: '[\s\S]*'
-          string_to_replace: |
-            ${{ steps.read_tree.outputs.file_content }}
-            # Arquivo para ler o conteúdo (necessário um passo extra para isso)
-          file_path: 'README.md'
-          
-      - name: Read tree structure file
-        id: read_tree
-        uses: anmol098/read-file-actions@v1.2
-        with:
-          path: tree.md
-
-      - name: Update README with project tree
-        uses: anmol098/string-replace-action@v1.3
-        with:
-          path: 'README.md'
-          pattern: '[\s\S]*'
-          string_to_replace: |
-            ${{ steps.read_tree.outputs.file_content }}
-            # Passo 6: Fazer o commit das alterações no README.md
-      - name: Commit and push if changed
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
+          readme_path: "README.md"
+          data_source: "echo '```'; tree Backend -L 3 --dirsfirst -I 'bin|obj|.vs|Properties'; echo '```'"
+          section_name: "project_tree"
+          gh_token: ${{ secrets.GH_PAT }}
           commit_message: "docs: update project structure tree"
-          file_pattern: README.md
