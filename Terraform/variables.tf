@@ -1,41 +1,35 @@
 variable "aws_region" {
-  description = "Região da AWS para provisionar os recursos."
+  description = "AWS region."
   type        = string
   default     = "us-east-1"
 }
 
 variable "project_name" {
-  description = "Nome do projeto, usado para nomear recursos."
+  description = "Project name."
   type        = string
   default     = "skilllearning"
 }
 
 variable "vpc_cidr_block" {
-  description = "Bloco CIDR para a VPC."
+  description = "CIDR block for VPC."
   type        = string
   default     = "10.0.0.0/16"
 }
 
 variable "db_instance_class" {
-  description = "Classe de instância para o RDS PostgreSQL."
+  description = "RDS instance class."
   type        = string
   default     = "db.t3.micro"
 }
 
 variable "db_username" {
-  description = "Usuário master para o banco de dados."
-  type        = string
-  sensitive   = true # Marca a variável como sensível para não ser exibida nos logs
-}
-
-variable "db_password" {
-  description = "Senha master para o banco de dados."
+  description = "Database username."
   type        = string
   sensitive   = true
 }
 
-variable "redis_node_type" {
-  description = "Tipo de nó para o cluster ElastiCache Redis."
+variable "db_password" {
+  description = "Database password."
   type        = string
-  default     = "cache.t3.micro"
+  sensitive   = true
 }
