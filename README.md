@@ -138,7 +138,7 @@ A fundação do projeto é baseada em princípios que garantem um sistema manute
 
 Abaixo está a estrutura de pastas do backend, refletindo os princípios da Arquitetura Limpa.
 
-{{project_tree}}
+{{tree_content}}
 
 ---
 
