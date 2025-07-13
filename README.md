@@ -1,49 +1,135 @@
 # 🚀 SkillLearning API
 
-[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
-[![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)](https://docs.microsoft.com/en-us/dotnet/csharp/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Kafka](https://img.shields.io/badge/Apache%20Kafka-232323?style=for-the-badge&logo=apache-kafka&logoColor=white)](https://kafka.apache.org/)
-[![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
-[![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](https://swagger.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p align="left">
+  <a href="https://github.com/JonasMacielWork/SkillLearning/actions/workflows/ci.yml">
+    <img src="https://github.com/JonasMacielWork/SkillLearning/actions/workflows/ci.yml/badge.svg" alt="CI Pipeline Status"/>
+  </a>
+  <a href="#"><img src="https://img.shields.io/badge/.NET-9.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET 9"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white" alt="C#"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/Kafka-232323?style=for-the-badge&logo=apache-kafka&logoColor=white" alt="Kafka"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis"/></a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License: MIT"/>
+  </a>
+</p>
 
 ---
 
 ## 🎯 Sobre o Projeto
 
-**SkillLearning** é um backend robusto para uma plataforma de aprendizagem, construído com .NET para demonstrar a aplicação de uma arquitetura limpa, padrões de design avançados e uma stack de tecnologia moderna e escalável.
+**SkillLearning** é um backend robusto para uma plataforma de aprendizado, construído com .NET 9, demonstrando:
 
-*Este projeto está em desenvolvimento contínuo como um portfólio vivo, refletindo a evolução de conhecimentos e a aplicação de novas tecnologias. (o README pode estar desatualizado perante alterações do projeto)*
+- Arquitetura limpa e escalável  
+- Padrões de design avançados  
+- Stack moderna focada em performance e manutenibilidade  
+
+> Projeto em desenvolvimento contínuo, funcionando como portfólio vivo e playground técnico.
 
 ---
 
-## ✨ Arquitetura e Padrões de Design
+## 🏗️ Diagrama de Arquitetura
+
+```mermaid
+%% Diagrama de Arquitetura de Sistema - SkillLearning v5
+graph LR
+    %% --- Definição dos Nós ---
+    %% Nós com múltiplas linhas para Título e Tecnologia
+    U(fa:fa-user Usuário)
+
+    subgraph "Ambiente do Cliente"
+        A["fa:fa-react Frontend<br/><i>React & TypeScript</i>"]
+    end
+
+    subgraph "Ambiente Cloud (AWS)"
+        ALB["fa:fa-network-wired ALB<br/><i>(Load Balancer)</i>"]
+
+        subgraph "Serviços da Aplicação (EKS)"
+            direction TB
+            B["fa:fa-server SkillLearning API<br/><i>ASP.NET Core</i>"]
+            C["fa:fa-cogs Email Worker<br/><i>.NET Worker Service</i>"]
+        end
+        
+        subgraph "Infraestrutura de Dados"
+            direction TB
+            D["fa:fa-database PostgreSQL<br/><i>Amazon RDS</i>"]
+            E["fa:fa-memory Redis<br/><i>Amazon ElastiCache</i>"]
+            F["fa:fa-comments Apache Kafka<br/><i>Amazon MSK</i>"]
+        end
+        
+        H["fa:fa-tachometer-alt Observabilidade<br/><i>AWS X-Ray</i>"]
+    end
+
+    subgraph "Serviços de Terceiros"
+        G["fa:fa-envelope Servidor SMTP<br/><i>(e.g., Amazon SES)</i>"]
+    end
+    
+    %% --- Definição dos Fluxos ---
+    U -- HTTPS --> A
+    A -- Requisição API --> ALB
+    ALB -- Roteia Tráfego --> B
+    
+    B -- Leitura/Escrita<br/>(SQL) --> D
+    B -- Cache<br/>(Get/Set) --> E
+    B -.->|Publica Evento| F
+    
+    F -->|Consome Evento| C
+    C -->|Envia E-mail| G
+    
+    B & C -.->|Envia Traces| H
+    
+    %% --- Estilização (Tema TokyoNight) ---
+    style U fill:#bb9af7,stroke:#1a1b26,stroke-width:2px,color:#1a1b26
+    style A fill:#7aa2f7,stroke:#1a1b26,stroke-width:2px,color:#1a1b26
+    style ALB fill:#c0caf5,stroke:#414868,stroke-width:2px,color:#1a1b26
+    style B fill:#bb9af7,stroke:#414868,stroke-width:2px,color:#1a1b26
+    style C fill:#bb9af7,stroke:#414868,stroke-width:2px,color:#1a1b26
+    style D fill:#7dcfff,stroke:#414868,stroke-width:2px,color:#1a1b26
+    style E fill:#ff9e64,stroke:#414868,stroke-width:2px,color:#1a1b26
+    style F fill:#f7768e,stroke:#414868,stroke-width:2px,color:#1a1b26
+    style G fill:#e0af68,stroke:#414868,stroke-width:2px,color:#1a1b26
+    style H fill:#9ece6a,stroke:#414868,stroke-width:2px,color:#1a1b26
+```
+
+---
+
+## ✨ Features Principais
+
+-   **Autenticação e Autorização:** Sistema completo com registro, login via JWT e refresh tokens.
+-   **Notificações em Tempo Real:** Painel de atividades que exibe eventos (novos usuários, logins) em tempo real usando **SignalR**.
+-   **Comunicação Assíncrona:** Envio de e-mails de boas-vindas e notificação de login de forma desacoplada, através de um sistema de mensageria com **Kafka**.
+-   **Cache de Performance:** Uso de **Redis** para cachear queries de leitura, reduzindo a carga no banco de dados.
+-   **Observabilidade:** Integração com **AWS X-Ray** para tracing distribuído das requisições.
+
+---
+
+## 🏗️ Arquitetura e Padrões
 
 A fundação do projeto é baseada em princípios que garantem um sistema manutenível, testável e desacoplado.
 
-* **Arquitetura Limpa (Clean Architecture):** Separação de responsabilidades em camadas (`Domain`, `Application`, `Infrastructure`, `Presentation`), com o fluxo de dependências sempre apontando para o núcleo do negócio.
-* **Domain-Driven Design (DDD) Tático:** As entidades (ex: `User`) são ricas em comportamento, encapsulando a lógica de negócio e evitando modelos anêmicos.
-* **CQRS (Command and Query Responsibility Segregation):** Operações de escrita (Commands) e leitura (Queries) são segregadas, permitindo otimizações e lógicas independentes para cada fluxo.
-* **Comunicação Assíncrona via Eventos:** Utilizando o padrão **Produtor/Consumidor** com **Apache Kafka** para desacoplar tarefas secundárias (como envio de e-mails), garantindo que a API permaneça ágil e resiliente.
-* **Padrão Mediator:** Com o uso de `MediatR` para orquestrar as operações na camada de aplicação, mantendo os controllers limpos e focados em roteamento e validação.
+-   **Arquitetura Limpa (Clean Architecture):** Separação de responsabilidades em camadas (`Domain`, `Application`, `Infrastructure`, `Presentation`), com o fluxo de dependências sempre apontando para o núcleo do negócio.
+-   **Domain-Driven Design (DDD) Tático:** As entidades (ex: `User`) são ricas em comportamento, encapsulando a lógica de negócio e evitando modelos anêmicos.
+-   **CQRS (Command and Query Responsibility Segregation):** Operações de escrita (Commands) e leitura (Queries) são segregadas, permitindo otimizações e lógicas independentes para cada fluxo.
+-   **Padrão Mediator:** Com o uso de `MediatR` para orquestrar as operações na camada de aplicação, mantendo os controllers limpos e focados em roteamento e validação.
 
 ---
 
 ## 🛠️ Stack de Tecnologias
 
-| Categoria       | Tecnologia/Ferramenta                                  |
-| --------------- | ------------------------------------------------------ |
+| Categoria          | Tecnologia/Ferramenta                                  |
+| ------------------ | ------------------------------------------------------ |
 | **Backend** | .NET 9, ASP.NET Core, C#                               |
+| **Comunicação** | API REST, SignalR                                      |
 | **Banco de Dados** | PostgreSQL, Entity Framework Core                      |
-| **Mensageria** | Apache Kafka, Confluent.Kafka Client                 |
+| **Mensageria** | Apache Kafka, Confluent.Kafka Client                   |
 | **Cache** | Redis (Cache Distribuído)                              |
-| **Autenticação**| JWT (JSON Web Tokens)                                  |
-| **Testes** | xUnit, Moq, FluentAssertions                           |
+| **Autenticação** | JWT (JSON Web Tokens)                                  |
+| **Testes** | xUnit, Moq, FluentAssertions, Testcontainers           |
 | **Container** | Docker & Docker Compose                                |
 | **CI/CD** | GitHub Actions                                         |
-| **Documentação**| Swagger (OpenAPI)                                      |
+| **Observabilidade**| AWS X-Ray                                              |
+| **Documentação** | Swagger (OpenAPI)                                      |
 
 ---
 
@@ -59,49 +145,44 @@ A maneira mais simples e consistente de executar todo o ambiente (API, Worker, B
 
 1.  **Clone o Repositório**
     ```bash
-    git clone [https://github.com/JelisMicaon/SkillLearning.git](https://github.com/JelisMicaon/SkillLearning.git)
+    git clone https://github.com/JonasMacielWork/SkillLearning.git
     cd SkillLearning
     ```
 
 2.  **Configure os Segredos Locais**
-    Crie um arquivo chamado `.env` na raiz do projeto. Este arquivo **não será versionado** e guardará seus segredos. Copie o conteúdo abaixo e preencha com seus valores.
+    Na pasta `Build/`, crie um arquivo chamado `.env`. Este arquivo **não será versionado** e guardará seus segredos. Copie o conteúdo abaixo e preencha com seus valores.
     ```dotenv
-    # .env - Arquivo de segredos para o ambiente Docker
+    # Build/.env - Arquivo de segredos para o ambiente Docker
 
     # Banco de Dados
-    POSTGRES_DB=AlgumNomeDeBanco
-    POSTGRES_USERNAME=AlgumUsername
-    POSTGRES_PASSWORD=AlgumaSenha
+    POSTGRES_DB=skilllearning_db
+    POSTGRES_USERNAME=admin
+    POSTGRES_PASSWORD=admin
 
-    # JWT
-    JWT_KEY="AlgumaChaveGeradaPorVoce"
+    # JWT (use uma chave secreta forte e longa)
+    JWT_KEY="UMA_CHAVE_SECRETA_FORTE_COM_MAIS_DE_32_CARACTERES"
 
-    # Configurações de E-mail
-    EMAIL_SENDER_USER="SeuEmail@gmail.com"
-    EMAIL_SENDER_PASSWORD="SuaSenha"
+    # Configurações de E-mail (use um App Password do Gmail se tiver 2FA)
+    EMAIL_SENDER_USER="seu-email@gmail.com"
+    EMAIL_SENDER_PASSWORD="sua-senha-de-app"
 
-    # Chaves AWS
-    AWS_ACCESS_KEY_ID=SeuAccess
-    AWS_SECRET_ACCESS_KEY=SuaKey
-    AWS_REGION=SuaRegiao
+    # Chaves AWS (opcional, para X-Ray)
+    AWS_ACCESS_KEY_ID=seu-access-key
+    AWS_SECRET_ACCESS_KEY=sua-secret-key
+    AWS_REGION=us-east-1
     ```
 
 3.  **Inicie todos os Serviços**
-    Com o Docker Desktop em execução, rode o seguinte comando na raiz do projeto:
+    Com o Docker Desktop em execução, rode o seguinte comando na **raiz do projeto**:
     ```bash
-    docker-compose up -d --build
+    docker-compose -f build/docker-compose.yml up -d --build
     ```
     Este comando irá construir as imagens e iniciar todos os contêineres em segundo plano.
 
-4.  **Aplique as Migrações do Banco de Dados**
-    Aguarde alguns segundos para o container do PostgreSQL iniciar completamente e então execute:
-    ```bash
-    dotnet ef database update --project SkillLearning.Infrastructure
-    ```
-
-5.  **Acesse a Aplicação**
-    * **API:** `http://localhost:5000`
-    * **Documentação (Swagger):** `http://localhost:5000/swagger`
+4.  **Acesse a Aplicação**
+    A API está configurada para aplicar as migrações do banco de dados automaticamente na inicialização. Aguarde cerca de um minuto para todos os serviços estabilizarem.
+    * **API:** `https://localhost:7140` (verifique a porta no seu `launchSettings.json`)
+    * **Documentação (Swagger):** `https://localhost:7140/swagger`
     * **Kafka UI:** `http://localhost:8080`
     * **Redis Insight:** `http://localhost:8081`
 
@@ -109,21 +190,28 @@ A maneira mais simples e consistente de executar todo o ambiente (API, Worker, B
 
 ## 🧪 Rodando os Testes
 
-Para executar a suíte de testes unitários, utilize o comando:
+Para executar a suíte de testes unitários e de integração, utilize o comando na raiz do projeto:
 
 ```bash
-dotnet test SkillLearning.Tests
+dotnet test
 ```
 
 ## 📄 Licença
 
-Este projeto está licenciado sob a [Licença MIT](LICENSE). Consulte o arquivo `LICENSE` na raiz do repositório para mais detalhes sobre os termos de uso.
+Este projeto está licenciado sob a [Licença MIT](LICENSE).
 
-## 📬 Contato
+## 📬 Contato e Redes
 
-Se você tiver alguma dúvida, sugestão, feedback ou apenas quiser conversar sobre o projeto e programação, sinta-se à vontade para entrar em contato:
+Se você tiver alguma dúvida, sugestão, feedback sobre o projeto ou apenas quiser trocar uma ideia sobre tecnologia, ficarei feliz em conversar. Me encontre em qualquer um destes canais:
 
-* **Jonas Maciel**
-* **LinkedIn**: [Jonas Maciel](https://www.linkedin.com/in/jonas-maciell)
-* **GitHub**: [Jelis Micaon](https://github.com/JelisMicaon)
-* **Email**: jonasmacielwork@gmail.com
+<p align="left">
+  <a href="https://www.linkedin.com/in/jonas-maciell/" target="_blank">
+    <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn">
+  </a>
+  <a href="mailto:jonasmacielwork@gmail.com">
+    <img src="https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white" alt="Gmail">
+  </a>
+  <a href="https://github.com/JonasMacielWork" target="_blank">
+    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
+  </a>
+</p>
