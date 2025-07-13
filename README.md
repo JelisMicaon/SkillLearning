@@ -134,6 +134,12 @@ A fundação do projeto é baseada em princípios que garantem um sistema manute
 
 ---
 
+## 🏛️ Estrutura do Projeto
+
+Abaixo está a estrutura de pastas do backend, refletindo os princípios da Arquitetura Limpa.
+
+---
+
 ## 🚀 Executando com Docker (Método Recomendado)
 
 A maneira mais simples e consistente de executar todo o ambiente (API, Worker, Banco de Dados, Cache e Mensageria) é utilizando Docker.
