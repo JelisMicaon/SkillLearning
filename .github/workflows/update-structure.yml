@@ -8,7 +8,7 @@ on:
     paths:
       - 'README.template.md'
       - 'Backend/**'
-      - '.github/workflows/update-structure.yml'
+      - '.github/workflows/**'
 
 jobs:
   build:
@@ -27,26 +27,11 @@ jobs:
       - name: Generate project tree file
         run: tree Backend -L 3 --dirsfirst -I 'bin|obj|.vs|Properties' > project_tree.txt
 
-      - name: Generate README.md from template
-        run: |
-          python -c "
-          # Lê o conteúdo do template e da árvore gerada
-          with open('README.template.md', 'r') as f: template_content = f.read()
-          with open('project_tree.txt', 'r') as f: tree_content = f.read()
-          
-          # Prepara o bloco de código da árvore
-          tree_block = f'```\n{tree_content}```'
-          
-          # Lógica de substituição segura: troca o placeholder pelo bloco da árvore
-          new_readme = template_content.replace('{{project_tree}}', tree_block)
-          
-          # Escreve o resultado em um NOVO (ou sobrescreve o antigo) README.md
-          with open('README.md', 'w') as f:
-              f.write(new_readme)
-          "
+      - name: Generate README from template
+        run: python .github/scripts/generate_readme.py
 
-      - name: Commit and push generated README.md
+      - name: Commit and push if changed
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "docs: generate and update README.md from template"
+          commit_message: "docs: generate and update README.md"
           file_pattern: README.md
