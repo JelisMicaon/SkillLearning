@@ -2,7 +2,7 @@
 using Moq;
 using SkillLearning.Application.Common.Errors;
 using SkillLearning.Application.Common.Interfaces;
-using SkillLearning.Application.Features.Users.Commands;
+using SkillLearning.Application.Features.Users.UpdateUserEmailUseCase;
 using SkillLearning.Domain.Entities;
 using SkillLearning.Domain.Enums;
 

@@ -8,7 +8,7 @@ using SkillLearning.Api.Services;
 using SkillLearning.Application.Common.Behaviors;
 using SkillLearning.Application.Common.Configuration;
 using SkillLearning.Application.Common.Interfaces;
-using SkillLearning.Application.Features.Auth.Commands;
+using SkillLearning.Application.Features.Auth.RegisterUserUseCase;
 using SkillLearning.Infrastructure.Persistence;
 using SkillLearning.Infrastructure.Persistence.Repositories;
 using SkillLearning.Infrastructure.Services;

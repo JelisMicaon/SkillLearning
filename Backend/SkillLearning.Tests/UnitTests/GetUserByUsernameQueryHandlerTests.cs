@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Application.Common.Models;
-using SkillLearning.Application.Features.Auth.Queries;
+using SkillLearning.Application.Features.Auth.GetUserByUsernameUseCase;
 using SkillLearning.Domain.Entities;
 using SkillLearning.Domain.Enums;
 using SkillLearning.Infrastructure.Persistence;

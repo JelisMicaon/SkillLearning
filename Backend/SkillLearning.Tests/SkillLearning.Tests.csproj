@@ -4,7 +4,9 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,7 +14,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="FluentAssertions" Version="8.4.0" />
+    <PackageReference Include="FluentAssertions" Version="8.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.7" />
@@ -37,6 +39,10 @@
     <ProjectReference Include="..\SkillLearning.Application\SkillLearning.Application.csproj" />
     <ProjectReference Include="..\SkillLearning.Domain\SkillLearning.Domain.csproj" />
     <ProjectReference Include="..\SkillLearning.Infrastructure\SkillLearning.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="ReferenceTrimmer" Version="3.3.12" />
   </ItemGroup>
 
 </Project>

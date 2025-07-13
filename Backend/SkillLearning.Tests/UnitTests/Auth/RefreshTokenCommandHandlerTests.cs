@@ -5,7 +5,7 @@ using SkillLearning.Application.Common.Configuration;
 using SkillLearning.Application.Common.Errors;
 using SkillLearning.Application.Common.Interfaces;
 using SkillLearning.Application.Common.Models;
-using SkillLearning.Application.Features.Auth.Commands;
+using SkillLearning.Application.Features.Auth.RefreshTokenUseCase;
 using SkillLearning.Domain.Entities;
 using SkillLearning.Domain.Enums;
 using System.Security.Claims;

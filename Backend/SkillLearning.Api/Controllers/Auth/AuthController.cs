@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SkillLearning.Api.Controllers.Common;
-using SkillLearning.Application.Features.Auth.Commands;
-using SkillLearning.Application.Features.Auth.Queries;
+using SkillLearning.Application.Features.Auth.CheckUserExistsUseCase;
+using SkillLearning.Application.Features.Auth.LoginUserUseCase;
+using SkillLearning.Application.Features.Auth.RefreshTokenUseCase;
+using SkillLearning.Application.Features.Auth.RegisterUserUseCase;
 
 namespace SkillLearning.Api.Controllers.Auth
 {

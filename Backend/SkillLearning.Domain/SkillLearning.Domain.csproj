@@ -4,6 +4,8 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +15,10 @@
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Core" Version="1.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="ReferenceTrimmer" Version="3.3.12" />
   </ItemGroup>
 
 </Project>

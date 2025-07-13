@@ -4,40 +4,46 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <RootNamespace>SkillLearning.Api</RootNamespace>
-    <NoWarn>$(NoWarn);1591</NoWarn>
-
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <DockerfileContext>$(MSBuildProjectDirectory)/..</DockerfileContext>
-    <DockerfileFile>$(MSBuildProjectDirectory)/../../Dockerfile</DockerfileFile>
-
     <UserSecretsId>d7ed92bc-336a-49c6-b635-7ae0f28a198c</UserSecretsId>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>$(MSBuildProjectDirectory)\..\..</DockerfileContext> 
+    <DockerfileFile>Build\Dockerfile</DockerfileFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.SwaggerUI.Themes" Version="2.0.0" />
-    <PackageReference Include="AWSXRayRecorder" Version="2.15.0" />
-    <PackageReference Include="AWSXRayRecorder.Handlers.AspNetCore" Version="2.12.0" />
+    <PackageReference Include="AWSXRayRecorder.Handlers.AwsSdk" Version="2.13.0" />
     <PackageReference Include="MediatR" Version="13.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.7" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.7" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.7" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.7" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.7" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.7">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.7" />
+    <PackageReference Include="AWSXRayRecorder.Core" Version="2.15.0" />
+    <PackageReference Include="AWSXRayRecorder.Handlers.AspNetCore" Version="2.12.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SkillLearning.Application\SkillLearning.Application.csproj" />
     <ProjectReference Include="..\SkillLearning.Infrastructure\SkillLearning.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="ReferenceTrimmer" Version="3.3.12" />
   </ItemGroup>
 
 </Project>

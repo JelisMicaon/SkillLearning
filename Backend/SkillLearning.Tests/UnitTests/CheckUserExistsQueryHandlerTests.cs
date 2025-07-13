@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using SkillLearning.Application.Common.Interfaces;
-using SkillLearning.Application.Features.Auth.Queries;
+using SkillLearning.Application.Features.Auth.CheckUserExistsUseCase;
 using SkillLearning.Domain.Entities;
 using SkillLearning.Infrastructure.Persistence;
 

@@ -1,6 +1,6 @@
 using SkillLearning.Application.Common.Configuration;
 using SkillLearning.Application.Common.Interfaces;
-using SkillLearning.Application.Features.Auth.EventHandlers;
+using SkillLearning.Application.Features.Auth.EventHandlersUseCase;
 using SkillLearning.Infrastructure.Configuration;
 using SkillLearning.Infrastructure.Services;
 using SkillLearning.Workers.EmailSender.Services;
