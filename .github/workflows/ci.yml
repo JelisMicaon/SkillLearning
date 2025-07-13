@@ -28,11 +28,11 @@ jobs:
 
       - name: 🧪 Run tests and collect coverage
         run: >
-          dotnet test SkillLearning.sln 
-          --no-build 
-          --configuration Release 
-          --collect:"XPlat Code Coverage" 
-          /p:CoverletOutputFormat=lcov 
+          dotnet test SkillLearning.sln
+          --no-build
+          --configuration Release
+          /p:CollectCoverage=true
+          /p:CoverletOutputFormat=lcov
           /p:CoverletOutput=${{ github.workspace }}/coverage/lcov.info
 
       - name: 🧐 Verify generated files
