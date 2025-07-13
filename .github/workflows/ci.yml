@@ -32,15 +32,14 @@ jobs:
           --no-build 
           --configuration Release 
           --collect:"XPlat Code Coverage" 
-          /p:CoverletOutputFormat=opencover 
-          /p:CoverletOutput=./coverage/
+          /p:CoverletOutputFormat=lcov 
+          /p:CoverletOutput=./coverage/lcov.info
 
       - name: 🚀 Publish coverage report to Coveralls
         uses: coverallsapp/github-action@v2
         with:
+          path-to-lcov: "coverage/lcov.info"
           github-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
-          format: 'opencover'
-          path-to-lcov: "coverage/coverage.opencover.xml"
 
       - name: 🚀 Publish backend for deployment
         run: dotnet publish Backend/SkillLearning.Api -c Release -o ./publish
