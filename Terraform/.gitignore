@@ -1,0 +1,12 @@
+# Arquivo de variáveis secretas
+*.tfvars
+
+# Arquivos de estado e backups do Terraform
+*.tfstate
+*.tfstate.backup
+
+# Pasta de plugins e módulos locais
+.terraform/
+
+# Logs de erro do Terraform
+crash.log
