@@ -142,13 +142,17 @@ resource "aws_iam_instance_profile" "ec2_profile" {
 }
 
 resource "aws_instance" "app_server" {
-  ami                         = data.aws_ami.ubuntu.id
-  instance_type               = "t2.micro"
-  subnet_id                   = module.vpc.public_subnets[0]
-  vpc_security_group_ids      = [aws_security_group.instance_sg.id]
+  ami                      = data.aws_ami.ubuntu.id
+  instance_type            = "t2.micro"
+  subnet_id                = module.vpc.public_subnets[0]
+  vpc_security_group_ids   = [aws_security_group.instance_sg.id]
   associate_public_ip_address = true
-  key_name                    = aws_key_pair.deployer.key_name
-  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
+  key_name                 = aws_key_pair.deployer.key_name
+  iam_instance_profile     = aws_iam_instance_profile.ec2_profile.name
+
+  root_block_device {
+    volume_size = 30
+  }
 
   tags = {
     Name = "${var.project_name}-server"
