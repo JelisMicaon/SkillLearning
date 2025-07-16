@@ -409,4 +409,9 @@ FodyWeavers.xsd
 *_tree.txt
 .env
 /coveragereport
-Terraform/terraform.tfvars
+*.tfvars
+*.tfstate
+*.tfstate.backup
+.terraform/
+crash.log
+*.exe

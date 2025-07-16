@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.aws_region
-}
-
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.5.2"
@@ -9,9 +5,9 @@ module "vpc" {
   name = "${var.project_name}-vpc"
   cidr = "10.0.0.0/16"
 
-  azs             = ["${var.aws_region}a"]
-  public_subnets  = ["10.0.101.0/24"]
-  private_subnets = ["10.0.1.0/24"]
+  azs             = ["${var.aws_region}a", "${var.aws_region}b"]
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
+  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
 
   enable_nat_gateway   = false
   single_nat_gateway   = false
@@ -85,12 +81,12 @@ resource "aws_db_subnet_group" "main" {
 resource "aws_db_instance" "postgres" {
   allocated_storage      = 20
   engine                 = "postgres"
-  engine_version         = "13.4"
+  engine_version         = "16.3" 
   instance_class         = var.db_instance_class
   db_name                = "skilllearningdb"
   username               = var.db_username
   password               = var.db_password
-  parameter_group_name   = "default.postgres13"
+  parameter_group_name   = "default.postgres16"
   skip_final_snapshot    = true
   vpc_security_group_ids = [aws_security_group.db_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.main.name
@@ -161,5 +157,5 @@ resource "aws_instance" "app_server" {
 
 resource "aws_eip" "static_ip" {
   instance = aws_instance.app_server.id
-  vpc      = true
+  domain   = "vpc"
 }
