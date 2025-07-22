@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: skilllearning-workers-emailsender
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: skilllearning-workers-emailsender
+  template:
+    metadata:
+      labels:
+        app: skilllearning-workers-emailsender
+    spec:
+      containers:
+        - name: skilllearning-workers-emailsender
+          image: skilllearning-workers-emailsender
+          env:
+            - name: Kafka__BootstrapServers
+              value: kafka:29092
+            - name: EmailSettings__SmtpServer
+              value: smtp.gmail.com
+            - name: EmailSettings__SenderName
+              value: SkillLearning
+            - name: EmailSettings__SmtpPort
+              value: "587"
+            - name: EmailSettings__SmtpUsername
+              valueFrom:
+                secretKeyRef:
+                  name: skilllearning-secrets
+                  key: EMAIL_SENDER_USER
+            - name: EmailSettings__SenderEmail
+              valueFrom:
+                secretKeyRef:
+                  name: skilllearning-secrets
+                  key: EMAIL_SENDER_USER
+            - name: EmailSettings__SmtpPassword
+              valueFrom:
+                secretKeyRef:
+                  name: skilllearning-secrets
+                  key: EMAIL_SENDER_PASSWORD
+      restartPolicy: Always

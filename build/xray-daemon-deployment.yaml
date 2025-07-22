@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xray-daemon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xray-daemon
+  template:
+    metadata:
+      labels:
+        app: xray-daemon
+    spec:
+      containers:
+        - name: xray-daemon
+          image: amazon/aws-xray-daemon:latest
+          ports:
+            - containerPort: 2000
+              protocol: UDP
+          env:
+            - name: AWS_REGION
+              value: AWS_REGION
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: skilllearning-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: skilllearning-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+      restartPolicy: Always
