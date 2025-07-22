@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: D:\WorkSpace\SkillLearning\tools\kompose.exe convert
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: redis-insight
+  name: redis-insight
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: redis-insight
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: D:\WorkSpace\SkillLearning\tools\kompose.exe convert
+        kompose.version: 1.36.0 (ae2a39403)
+      labels:
+        io.kompose.service: redis-insight
+    spec:
+      containers:
+        - image: redis/redisinsight:latest
+          name: redis-insight
+          ports:
+            - containerPort: 5540
+              protocol: TCP
+      restartPolicy: Always

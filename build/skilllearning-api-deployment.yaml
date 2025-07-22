@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: D:\WorkSpace\SkillLearning\tools\kompose.exe convert
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: skilllearning-api
+  name: skilllearning-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: skilllearning-api
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: D:\WorkSpace\SkillLearning\tools\kompose.exe convert
+        kompose.version: 1.36.0 (ae2a39403)
+      labels:
+        io.kompose.service: skilllearning-api
+    spec:
+      containers:
+        - name: skilllearning-api
+          image: skilllearning-api
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ConnectionStrings__Default
+              valueFrom:
+                secretKeyRef:
+                  name: skilllearning-secrets
+                  key: POSTGRES_CONNECTION_STRING
+            - name: ConnectionStrings__ReadOnly
+              valueFrom:
+                secretKeyRef:
+                  name: skilllearning-secrets
+                  key: POSTGRES_CONNECTION_STRING
+            - name: Jwt__Key
+              valueFrom:
+                secretKeyRef:
+                  name: skilllearning-secrets
+                  key: JWT_KEY
+      restartPolicy: Always
